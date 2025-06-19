@@ -1,3 +1,20 @@
+### ScatterNote - your handy virtual desk
+
+``Zustand, React, Shadcn/UI, Tailwind CSS, React Markdown, React DnD, Express, Prisma, PostgreSQL``
+
+Acessible from anywhere with just a browser and internet connection
+
+- __*Organize your notes:*__
+- pin them to intuitive places for quick noticing on the desk
+- __*Toggle between multiple desks*__
+- for a better management of different aspects of your work
+- __*Create roadmaps*__
+- for easy end goal targetting and visible progress tracking encouraging you to push forward
+- __*Attach notes to roadmap steps*__
+- helping to memorize them better, aiding in structural association
+
+
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
