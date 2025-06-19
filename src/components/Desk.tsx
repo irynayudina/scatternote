@@ -115,7 +115,7 @@ const Desk = () => {
                   <Button className="w-full" variant="outline">
                     Create New Note
                   </Button>
-                  <Button className="w-full" variant="outline">
+                  <Button className="w-full" variant="outline" onClick={() => navigate('/desktop/1')}>
                     View All Notes
                   </Button>
                   <Button className="w-full" variant="outline">
