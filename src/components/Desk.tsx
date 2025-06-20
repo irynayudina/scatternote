@@ -11,7 +11,7 @@ interface UserData {
   createdAt: string
 }
 
-const Desk = () => {
+const HomeBoard = () => {
   const navigate = useNavigate()
   const [user, setUser] = useState<UserData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -116,9 +116,12 @@ const Desk = () => {
                     Create New Note
                   </Button>
                   <Button className="w-full" variant="outline" onClick={() => navigate('/desktop/1')}>
-                    View All Notes
+                    Go to Desk
                   </Button>
-                  <Button className="w-full" variant="outline">
+                  <Button className="w-full" variant="outline" onClick={() => navigate('/knowledge-base')}>
+                    Knowledge Base
+                  </Button>
+                  <Button className="w-full" variant="outline" onClick={() => navigate('/settings')}>
                     Settings
                   </Button>
                 </div>
@@ -167,4 +170,4 @@ const Desk = () => {
   )
 }
 
-export default Desk 
+export default HomeBoard 

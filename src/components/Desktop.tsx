@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -41,6 +41,14 @@ const Desktop = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [searchQuery, setSearchQuery] = useState('')
+  const [activeDesktopId, setActiveDesktopId] = useState<number>(1)
+  const [desktops, setDesktops] = useState<Desktop[]>([])
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragStartX, setDragStartX] = useState(0)
+  const [dragOffset, setDragOffset] = useState(0)
+  const [carouselOffset, setCarouselOffset] = useState(0)
+  const [nextActiveId, setNextActiveId] = useState<number | null>(null)
+  const carouselRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     // Check if user is logged in
@@ -56,6 +64,7 @@ const Desktop = () => {
       const parsedUser = JSON.parse(userData)
       setUser(parsedUser)
       loadDesktopData(parsedUser.id, parseInt(id || '1'))
+      loadDesktops(parsedUser.id)
     } catch (error) {
       console.error('Error parsing user data:', error)
       navigate('/')
@@ -63,6 +72,53 @@ const Desktop = () => {
       setIsLoading(false)
     }
   }, [navigate, id])
+
+  // Rearrange desktops to keep active one in the middle
+  const getRearrangedDesktops = () => {
+    if (desktops.length === 0) return []
+    
+    const activeIndex = desktops.findIndex(d => d.id === activeDesktopId)
+    if (activeIndex === -1) return desktops
+    
+    const middleIndex = Math.floor(desktops.length / 2)
+    const shift = middleIndex - activeIndex
+    
+    const rearranged = [...desktops]
+    if (shift > 0) {
+      // Move active element forward
+      for (let i = 0; i < shift; i++) {
+        const last = rearranged.pop()!
+        rearranged.unshift(last)
+      }
+    } else if (shift < 0) {
+      // Move active element backward
+      for (let i = 0; i < Math.abs(shift); i++) {
+        const first = rearranged.shift()!
+        rearranged.push(first)
+      }
+    }
+    
+    return rearranged
+  }
+
+  const loadDesktops = async (userId: number) => {
+    try {
+      // Mock desktops data - replace with actual API call
+      const mockDesktops: Desktop[] = [
+        { id: 1, name: "Personal", description: "Personal notes and thoughts", userId, createdAt: new Date().toISOString() },
+        { id: 2, name: "Work", description: "Work-related notes and projects", userId, createdAt: new Date().toISOString() },
+        { id: 3, name: "Study", description: "Study materials and research", userId, createdAt: new Date().toISOString() },
+        { id: 4, name: "Ideas", description: "Creative ideas and brainstorming", userId, createdAt: new Date().toISOString() },
+        { id: 5, name: "Tasks", description: "Todo lists and task management", userId, createdAt: new Date().toISOString() },
+        { id: 6, name: "Archive", description: "Archived notes and old content", userId, createdAt: new Date().toISOString() },
+        { id: 7, name: "Projects", description: "Project documentation and notes", userId, createdAt: new Date().toISOString() },
+      ]
+      setDesktops(mockDesktops)
+      setActiveDesktopId(parseInt(id || '1'))
+    } catch (error) {
+      console.error('Error loading desktops:', error)
+    }
+  }
 
   const loadDesktopData = async (userId: number, desktopId: number) => {
     try {
@@ -133,9 +189,125 @@ const Desktop = () => {
     console.log('Create new note')
   }
 
-  const handleViewAllNotes = () => {
-    // Navigate to the first desktop
-    navigate('/desktop/1')
+  const handleDesktopChange = (desktopId: number) => {
+    setActiveDesktopId(desktopId)
+    setCarouselOffset(0) // Reset offset when clicking
+    setNextActiveId(null) // Reset next active indicator
+    navigate(`/desktop/${desktopId}`)
+  }
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true)
+    setDragStartX(e.clientX)
+    setDragOffset(0)
+    setNextActiveId(null) // Reset next active indicator
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return
+    
+    const deltaX = e.clientX - dragStartX
+    setDragOffset(deltaX)
+    
+    // Calculate carousel offset for smooth movement
+    const itemWidth = 44 // Approximate width of each item including spacing
+    const newOffset = (deltaX / itemWidth) * -1 // Negative for natural direction
+    setCarouselOffset(newOffset)
+    
+    // Calculate next active element based on drag distance
+    const threshold = 10 // pixels to start showing next active (short drag minimum)
+    if (Math.abs(deltaX) > threshold) {
+      const currentIndex = desktops.findIndex(d => d.id === activeDesktopId)
+      const dragDistance = deltaX / itemWidth // How many items to jump
+      const targetIndex = Math.round(currentIndex + dragDistance) % desktops.length // Same direction as drag
+      console.log(targetIndex);
+      
+      // Ensure target index is within bounds
+      const clampedIndex = Math.max(0, Math.min(desktops.length - 1, targetIndex >=0 ? targetIndex : desktops.length + targetIndex));
+      const targetDesktop = desktops[clampedIndex];
+      console.log(targetDesktop);
+      
+      // Show next active even if it's the same as current (for visual feedback)
+      if (targetDesktop) {
+        setNextActiveId(targetDesktop.id)
+      } else {
+        setNextActiveId(null)
+      }
+    } else {
+      setNextActiveId(null)
+    }
+  }
+
+  const handleMouseUp = () => {
+    if (!isDragging) return
+    
+    setIsDragging(false)
+    
+    // Determine if we should change desktop based on drag distance
+    const threshold = 10 // pixels (short drag minimum)
+    if (Math.abs(dragOffset) > threshold) {
+      const currentIndex = desktops.findIndex(d => d.id === activeDesktopId)
+      const itemWidth = 44
+      const dragDistance = dragOffset / itemWidth
+      const targetIndex = Math.round(currentIndex + dragDistance) // Same direction as drag
+      
+      // Ensure target index is within bounds
+      const clampedIndex = Math.max(0, Math.min(desktops.length - 1, targetIndex))
+      const targetDesktop = desktops[clampedIndex]
+      
+      // Only change if we have a valid target and it's different from current
+      if (targetDesktop && targetDesktop.id !== activeDesktopId) {
+        handleDesktopChange(targetDesktop.id)
+      }
+    }
+    
+    setDragOffset(0)
+    setCarouselOffset(0)
+    setNextActiveId(null)
+  }
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsDragging(true)
+    setDragStartX(e.touches[0].clientX)
+    setDragOffset(0)
+    setNextActiveId(null) // Reset next active indicator
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return
+    
+    const deltaX = e.touches[0].clientX - dragStartX
+    setDragOffset(deltaX)
+    
+    // Calculate carousel offset for smooth movement
+    const itemWidth = 44 // Approximate width of each item including spacing
+    const newOffset = (deltaX / itemWidth) * -1 // Negative for natural direction
+    setCarouselOffset(newOffset)
+    
+    // Calculate next active element based on drag distance
+    const threshold = 10 // pixels to start showing next active (short drag minimum)
+    if (Math.abs(deltaX) > threshold) {
+      const currentIndex = desktops.findIndex(d => d.id === activeDesktopId)
+      const dragDistance = deltaX / itemWidth // How many items to jump
+      const targetIndex = Math.round(currentIndex + dragDistance) // Same direction as drag
+      
+      // Ensure target index is within bounds
+      const clampedIndex = Math.max(0, Math.min(desktops.length - 1, targetIndex))
+      const targetDesktop = desktops[clampedIndex]
+      
+      // Show next active even if it's the same as current (for visual feedback)
+      if (targetDesktop) {
+        setNextActiveId(targetDesktop.id)
+      } else {
+        setNextActiveId(null)
+      }
+    } else {
+      setNextActiveId(null)
+    }
+  }
+
+  const handleTouchEnd = () => {
+    handleMouseUp()
   }
 
   const filteredNotes = notes.filter(note =>
@@ -156,6 +328,9 @@ const Desktop = () => {
     return null
   }
 
+  const rearrangedDesktops = getRearrangedDesktops()
+  const middleIndex = Math.floor(rearrangedDesktops.length / 2)
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -163,12 +338,15 @@ const Desktop = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">{desktop.name}</h1>
+              <h1 className="text-3xl font-bold text-gray-900 after:content-[''] after:block after:w-full after:h-[1px] after:bg-gray-200 before:content-[''] before:inline-block before:w-6 before:h-6 before:bg-gray-400 before:rounded-full before:mr-2">{desktop.name}</h1>
               <p className="text-gray-600">{desktop.description}</p>
             </div>
             <div className="flex items-center space-x-4">
-              <Button onClick={handleViewAllNotes} variant="outline">
-                View All Notes
+              <Button onClick={() => navigate('/knowledge-base')} variant="outline">
+                Knowledge Base
+              </Button>
+              <Button onClick={() => navigate('/home-board')} variant="outline">
+                Go to Home Board
               </Button>
               <Button onClick={handleLogout} variant="outline">
                 Logout
@@ -177,6 +355,126 @@ const Desktop = () => {
           </div>
         </div>
       </header>
+
+      {/* Desktop Carousel */}
+      <div className="bg-white border-b border-gray-200 py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div 
+            ref={carouselRef}
+            className="relative overflow-hidden"
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            style={{ 
+              cursor: isDragging ? 'grabbing' : 'grab',
+              userSelect: 'none',
+              WebkitUserSelect: 'none',
+              MozUserSelect: 'none',
+              msUserSelect: 'none'
+            }}
+          >
+            <div 
+              className="flex justify-center items-center space-x-8 py-4 transition-transform duration-300 ease-out"
+              style={{ 
+                transform: `translateX(${carouselOffset * 44}px)`,
+                transition: isDragging ? 'none' : 'transform 0.3s ease-out',
+                userSelect: 'none',
+                WebkitUserSelect: 'none',
+                MozUserSelect: 'none',
+                msUserSelect: 'none'
+              }}
+            >
+              {rearrangedDesktops.map((desktopItem, index) => {
+                const isActive = desktopItem.id === activeDesktopId
+                const isNextActive = desktopItem.id === nextActiveId
+                const distanceFromCenter = Math.abs(index - middleIndex)
+                
+                // Determine scale and styling based on state
+                let scale = 1
+                let bgColor = 'bg-gray-100 border-gray-300 text-gray-600'
+                let textColor = 'text-gray-500'
+                
+                if (isActive) {
+                  scale = 1.25
+                  bgColor = 'bg-blue-500 border-blue-600 text-white'
+                  textColor = 'text-blue-600'
+                } else if (isNextActive && isDragging) {
+                  scale = 1.15 // Larger than normal but smaller than active
+                  bgColor = 'bg-blue-300 border-blue-400 text-white' // Lighter blue
+                  textColor = 'text-blue-500'
+                }
+                
+                return (
+                  <div
+                    key={desktopItem.id}
+                    className={`flex flex-col items-center transition-all duration-300 cursor-pointer ${
+                      isActive ? 'scale-125' : isNextActive && isDragging ? 'scale-115' : 'scale-100 opacity-60 hover:opacity-80'
+                    }`}
+                    onClick={() => handleDesktopChange(desktopItem.id)}
+                    style={{
+                      transform: `scale(${scale})`,
+                      opacity: isActive || (isNextActive && isDragging) ? 1 : 0.6,
+                      transition: isDragging ? 'none' : 'all 0.3s ease-out',
+                      userSelect: 'none',
+                      WebkitUserSelect: 'none',
+                      MozUserSelect: 'none',
+                      msUserSelect: 'none',
+                      WebkitTouchCallout: 'none'
+                    }}
+                  >
+                    <div
+                      className={`w-16 h-16 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${bgColor}`}
+                      style={{
+                        userSelect: 'none',
+                        WebkitUserSelect: 'none',
+                        MozUserSelect: 'none',
+                        msUserSelect: 'none'
+                      }}
+                    >
+                      <span 
+                        className="text-sm font-semibold"
+                        style={{
+                          userSelect: 'none',
+                          WebkitUserSelect: 'none',
+                          MozUserSelect: 'none',
+                          msUserSelect: 'none'
+                        }}
+                      >
+                        {desktopItem.name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <span 
+                      className={`text-xs mt-2 font-medium transition-all duration-300 ${textColor}`}
+                      style={{
+                        userSelect: 'none',
+                        WebkitUserSelect: 'none',
+                        MozUserSelect: 'none',
+                        msUserSelect: 'none'
+                      }}
+                    >
+                      {desktopItem.name}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+            
+            {/* Drag indicator */}
+            {isDragging && (
+              <div 
+                className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+                style={{ transform: `translate(-50%, -50%) translateX(${dragOffset}px)` }}
+              >
+                <div className="w-2 h-2 bg-blue-500 rounded-full opacity-50"></div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
