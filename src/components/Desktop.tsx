@@ -43,11 +43,6 @@ const Desktop = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeDesktopId, setActiveDesktopId] = useState<number>(1)
   const [desktops, setDesktops] = useState<Desktop[]>([])
-  const [isDragging, setIsDragging] = useState(false)
-  const [dragStartX, setDragStartX] = useState(0)
-  const [dragOffset, setDragOffset] = useState(0)
-  const [carouselOffset, setCarouselOffset] = useState(0)
-  const [nextActiveId, setNextActiveId] = useState<number | null>(null)
   const carouselRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -191,123 +186,93 @@ const Desktop = () => {
 
   const handleDesktopChange = (desktopId: number) => {
     setActiveDesktopId(desktopId)
-    setCarouselOffset(0) // Reset offset when clicking
-    setNextActiveId(null) // Reset next active indicator
     navigate(`/desktop/${desktopId}`)
   }
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true)
-    setDragStartX(e.clientX)
-    setDragOffset(0)
-    setNextActiveId(null) // Reset next active indicator
+  // Navigate to next desktop
+  const goToNextDesktop = () => {
+    const currentIndex = desktops.findIndex(d => d.id === activeDesktopId)
+    const nextIndex = (currentIndex + 1) % desktops.length
+    const nextDesktop = desktops[nextIndex]
+    if (nextDesktop) {
+      handleDesktopChange(nextDesktop.id)
+    }
   }
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return
+  // Navigate to previous desktop
+  const goToPreviousDesktop = () => {
+    const currentIndex = desktops.findIndex(d => d.id === activeDesktopId)
+    const prevIndex = currentIndex === 0 ? desktops.length - 1 : currentIndex - 1
+    const prevDesktop = desktops[prevIndex]
+    if (prevDesktop) {
+      handleDesktopChange(prevDesktop.id)
+    }
+  }
+
+  // Handle scroll wheel events
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault()
     
-    const deltaX = e.clientX - dragStartX
-    setDragOffset(deltaX)
+    // Add a small delay to prevent rapid scrolling
+    const threshold = 50 // Minimum scroll delta to trigger change
     
-    // Calculate carousel offset for smooth movement
-    const itemWidth = 44 // Approximate width of each item including spacing
-    const newOffset = (deltaX / itemWidth) * -1 // Negative for natural direction
-    setCarouselOffset(newOffset)
-    
-    // Calculate next active element based on drag distance
-    const threshold = 10 // pixels to start showing next active (short drag minimum)
-    if (Math.abs(deltaX) > threshold) {
-      const currentIndex = desktops.findIndex(d => d.id === activeDesktopId)
-      const dragDistance = deltaX / itemWidth // How many items to jump
-      const targetIndex = Math.round(currentIndex + dragDistance) % desktops.length // Same direction as drag
-      console.log(targetIndex);
-      
-      // Ensure target index is within bounds
-      const clampedIndex = Math.max(0, Math.min(desktops.length - 1, targetIndex >=0 ? targetIndex : desktops.length + targetIndex));
-      const targetDesktop = desktops[clampedIndex];
-      console.log(targetDesktop);
-      
-      // Show next active even if it's the same as current (for visual feedback)
-      if (targetDesktop) {
-        setNextActiveId(targetDesktop.id)
+    if (Math.abs(e.deltaX) > threshold || Math.abs(e.deltaY) > threshold) {
+      if (e.deltaX > 0 || e.deltaY > 0) {
+        goToNextDesktop()
       } else {
-        setNextActiveId(null)
+        goToPreviousDesktop()
       }
-    } else {
-      setNextActiveId(null)
     }
   }
 
-  const handleMouseUp = () => {
-    if (!isDragging) return
-    
-    setIsDragging(false)
-    
-    // Determine if we should change desktop based on drag distance
-    const threshold = 10 // pixels (short drag minimum)
-    if (Math.abs(dragOffset) > threshold) {
-      const currentIndex = desktops.findIndex(d => d.id === activeDesktopId)
-      const itemWidth = 44
-      const dragDistance = dragOffset / itemWidth
-      const targetIndex = Math.round(currentIndex + dragDistance) // Same direction as drag
-      
-      // Ensure target index is within bounds
-      const clampedIndex = Math.max(0, Math.min(desktops.length - 1, targetIndex))
-      const targetDesktop = desktops[clampedIndex]
-      
-      // Only change if we have a valid target and it's different from current
-      if (targetDesktop && targetDesktop.id !== activeDesktopId) {
-        handleDesktopChange(targetDesktop.id)
-      }
-    }
-    
-    setDragOffset(0)
-    setCarouselOffset(0)
-    setNextActiveId(null)
-  }
+  // Touch swipe handlers
+  const [touchStartX, setTouchStartX] = useState(0)
+  const [touchStartY, setTouchStartY] = useState(0)
+  const [isSwiping, setIsSwiping] = useState(false)
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    setIsDragging(true)
-    setDragStartX(e.touches[0].clientX)
-    setDragOffset(0)
-    setNextActiveId(null) // Reset next active indicator
+    setTouchStartX(e.touches[0].clientX)
+    setTouchStartY(e.touches[0].clientY)
+    setIsSwiping(false)
   }
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging) return
+    if (!touchStartX || !touchStartY) return
+
+    const touchCurrentX = e.touches[0].clientX
+    const touchCurrentY = e.touches[0].clientY
     
-    const deltaX = e.touches[0].clientX - dragStartX
-    setDragOffset(deltaX)
+    const deltaX = touchStartX - touchCurrentX
+    const deltaY = touchStartY - touchCurrentY
     
-    // Calculate carousel offset for smooth movement
-    const itemWidth = 44 // Approximate width of each item including spacing
-    const newOffset = (deltaX / itemWidth) * -1 // Negative for natural direction
-    setCarouselOffset(newOffset)
-    
-    // Calculate next active element based on drag distance
-    const threshold = 10 // pixels to start showing next active (short drag minimum)
-    if (Math.abs(deltaX) > threshold) {
-      const currentIndex = desktops.findIndex(d => d.id === activeDesktopId)
-      const dragDistance = deltaX / itemWidth // How many items to jump
-      const targetIndex = Math.round(currentIndex + dragDistance) // Same direction as drag
-      
-      // Ensure target index is within bounds
-      const clampedIndex = Math.max(0, Math.min(desktops.length - 1, targetIndex))
-      const targetDesktop = desktops[clampedIndex]
-      
-      // Show next active even if it's the same as current (for visual feedback)
-      if (targetDesktop) {
-        setNextActiveId(targetDesktop.id)
-      } else {
-        setNextActiveId(null)
-      }
-    } else {
-      setNextActiveId(null)
+    // Determine if this is a horizontal swipe
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+      setIsSwiping(true)
+      e.preventDefault() // Prevent default scrolling during horizontal swipe
     }
   }
 
-  const handleTouchEnd = () => {
-    handleMouseUp()
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStartX || !touchStartY || !isSwiping) return
+
+    const touchEndX = e.changedTouches[0].clientX
+    const deltaX = touchStartX - touchEndX
+    const minSwipeDistance = 50 // Minimum distance for a swipe
+
+    if (Math.abs(deltaX) > minSwipeDistance) {
+      if (deltaX > 0) {
+        // Swiped left - go to next
+        goToNextDesktop()
+      } else {
+        // Swiped right - go to previous
+        goToPreviousDesktop()
+      }
+    }
+
+    // Reset touch state
+    setTouchStartX(0)
+    setTouchStartY(0)
+    setIsSwiping(false)
   }
 
   const filteredNotes = notes.filter(note =>
@@ -362,15 +327,11 @@ const Desktop = () => {
           <div 
             ref={carouselRef}
             className="relative overflow-hidden"
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
+            onWheel={handleWheel}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
             style={{ 
-              cursor: isDragging ? 'grabbing' : 'grab',
               userSelect: 'none',
               WebkitUserSelect: 'none',
               MozUserSelect: 'none',
@@ -378,10 +339,8 @@ const Desktop = () => {
             }}
           >
             <div 
-              className="flex justify-center items-center space-x-8 py-4 transition-transform duration-300 ease-out"
+              className="flex justify-center items-center space-x-8 py-4 transition-all duration-300 ease-out"
               style={{ 
-                transform: `translateX(${carouselOffset * 44}px)`,
-                transition: isDragging ? 'none' : 'transform 0.3s ease-out',
                 userSelect: 'none',
                 WebkitUserSelect: 'none',
                 MozUserSelect: 'none',
@@ -390,7 +349,6 @@ const Desktop = () => {
             >
               {rearrangedDesktops.map((desktopItem, index) => {
                 const isActive = desktopItem.id === activeDesktopId
-                const isNextActive = desktopItem.id === nextActiveId
                 const distanceFromCenter = Math.abs(index - middleIndex)
                 
                 // Determine scale and styling based on state
@@ -402,23 +360,19 @@ const Desktop = () => {
                   scale = 1.25
                   bgColor = 'bg-blue-500 border-blue-600 text-white'
                   textColor = 'text-blue-600'
-                } else if (isNextActive && isDragging) {
-                  scale = 1.15 // Larger than normal but smaller than active
-                  bgColor = 'bg-blue-300 border-blue-400 text-white' // Lighter blue
-                  textColor = 'text-blue-500'
                 }
                 
                 return (
                   <div
                     key={desktopItem.id}
                     className={`flex flex-col items-center transition-all duration-300 cursor-pointer ${
-                      isActive ? 'scale-125' : isNextActive && isDragging ? 'scale-115' : 'scale-100 opacity-60 hover:opacity-80'
+                      isActive ? 'scale-125' : 'scale-100 opacity-60 hover:opacity-80'
                     }`}
                     onClick={() => handleDesktopChange(desktopItem.id)}
                     style={{
                       transform: `scale(${scale})`,
-                      opacity: isActive || (isNextActive && isDragging) ? 1 : 0.6,
-                      transition: isDragging ? 'none' : 'all 0.3s ease-out',
+                      opacity: isActive ? 1 : 0.6,
+                      transition: 'all 0.3s ease-out',
                       userSelect: 'none',
                       WebkitUserSelect: 'none',
                       MozUserSelect: 'none',
@@ -462,16 +416,6 @@ const Desktop = () => {
                 )
               })}
             </div>
-            
-            {/* Drag indicator */}
-            {isDragging && (
-              <div 
-                className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-                style={{ transform: `translate(-50%, -50%) translateX(${dragOffset}px)` }}
-              >
-                <div className="w-2 h-2 bg-blue-500 rounded-full opacity-50"></div>
-              </div>
-            )}
           </div>
         </div>
       </div>
