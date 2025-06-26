@@ -293,27 +293,26 @@ const Desktop = () => {
     return null
   }
 
-  const rearrangedDesktops = getRearrangedDesktops()
-  const middleIndex = Math.floor(rearrangedDesktops.length / 2)
+  const rearrangedDesktops = getRearrangedDesktops();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100">
       {/* Header */}
-      <header className="bg-white shadow">
+      <header className="bg-white/80 backdrop-blur-sm sticky top-0 pt-8 z-50 border-b border-pink-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 after:content-[''] after:block after:w-full after:h-[1px] after:bg-gray-200 before:content-[''] before:inline-block before:w-6 before:h-6 before:bg-gray-400 before:rounded-full before:mr-2">{desktop.name}</h1>
+              <h1 className="text-3xl font-bold text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text after:content-[''] after:block after:w-full after:h-[1px] after:bg-pink-200 before:content-[''] before:inline-block before:w-6 before:h-6 before:bg-gradient-to-r before:from-pink-400 before:to-purple-400 before:rounded-full before:mr-2">{desktop.name}</h1>
               <p className="text-gray-600">{desktop.description}</p>
             </div>
             <div className="flex items-center space-x-4">
-              <Button onClick={() => navigate('/knowledge-base')} variant="outline">
+              <Button onClick={() => navigate('/knowledge-base')} variant="outline" className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400">
                 Knowledge Base
               </Button>
-              <Button onClick={() => navigate('/home-board')} variant="outline">
+              <Button onClick={() => navigate('/home-board')} variant="outline" className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400">
                 Go to Home Board
               </Button>
-              <Button onClick={handleLogout} variant="outline">
+              <Button onClick={handleLogout} variant="outline" className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400">
                 Logout
               </Button>
             </div>
@@ -322,11 +321,11 @@ const Desktop = () => {
       </header>
 
       {/* Desktop Carousel */}
-      <div className="bg-white border-b border-gray-200 py-4">
+      <div className="bg-white/60 backdrop-blur-sm border-b border-pink-200 py-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div 
             ref={carouselRef}
-            className="relative overflow-hidden"
+            className="relative overflow-visible"
             onWheel={handleWheel}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
@@ -335,7 +334,9 @@ const Desktop = () => {
               userSelect: 'none',
               WebkitUserSelect: 'none',
               MozUserSelect: 'none',
-              msUserSelect: 'none'
+              msUserSelect: 'none',
+              height: '120px',
+              zIndex: 10
             }}
           >
             <div 
@@ -347,9 +348,8 @@ const Desktop = () => {
                 msUserSelect: 'none'
               }}
             >
-              {rearrangedDesktops.map((desktopItem, index) => {
+              {rearrangedDesktops.map((desktopItem) => {
                 const isActive = desktopItem.id === activeDesktopId
-                const distanceFromCenter = Math.abs(index - middleIndex)
                 
                 // Determine scale and styling based on state
                 let scale = 1
@@ -358,8 +358,8 @@ const Desktop = () => {
                 
                 if (isActive) {
                   scale = 1.25
-                  bgColor = 'bg-blue-500 border-blue-600 text-white'
-                  textColor = 'text-blue-600'
+                  bgColor = 'bg-gradient-to-r from-pink-500 to-purple-500 border-pink-600 text-white'
+                  textColor = 'text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text'
                 }
                 
                 return (
@@ -426,7 +426,7 @@ const Desktop = () => {
           {/* Toolbar */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0 mb-6">
             <div className="flex items-center space-x-4">
-              <Button onClick={handleCreateNote} className="flex items-center space-x-2">
+              <Button onClick={handleCreateNote} className="flex items-center space-x-2 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white border-0">
                 <Plus className="h-4 w-4" />
                 <span>Create Note</span>
               </Button>
@@ -435,29 +435,29 @@ const Desktop = () => {
             <div className="flex items-center space-x-4">
               {/* Search */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-pink-400" />
                 <input
                   type="text"
                   placeholder="Search notes..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="pl-10 pr-4 py-2 border border-pink-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white/80 backdrop-blur-sm"
                 />
               </div>
               
               {/* Filter */}
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400">
                 <Filter className="h-4 w-4 mr-2" />
                 Filter
               </Button>
               
               {/* View Mode Toggle */}
-              <div className="flex border border-gray-300 rounded-md">
+              <div className="flex border border-pink-300 rounded-md">
                 <Button
                   variant={viewMode === 'grid' ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => setViewMode('grid')}
-                  className="rounded-r-none"
+                  className={`rounded-r-none ${viewMode === 'grid' ? 'bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white border-0' : 'text-pink-600 hover:bg-pink-50'}`}
                 >
                   <Grid className="h-4 w-4" />
                 </Button>
@@ -465,7 +465,7 @@ const Desktop = () => {
                   variant={viewMode === 'list' ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => setViewMode('list')}
-                  className="rounded-l-none"
+                  className={`rounded-l-none ${viewMode === 'list' ? 'bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white border-0' : 'text-pink-600 hover:bg-pink-50'}`}
                 >
                   <List className="h-4 w-4" />
                 </Button>
@@ -477,7 +477,7 @@ const Desktop = () => {
           {filteredNotes.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-gray-500 text-lg mb-4">No notes found</div>
-              <Button onClick={handleCreateNote} variant="outline">
+              <Button onClick={handleCreateNote} variant="outline" className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400">
                 Create your first note
               </Button>
             </div>
@@ -489,17 +489,17 @@ const Desktop = () => {
               {filteredNotes.map((note) => (
                 <Card 
                   key={note.id} 
-                  className={`cursor-pointer transition-all duration-200 hover:shadow-lg ${
-                    note.isPinned ? 'ring-2 ring-blue-500' : ''
+                  className={`cursor-pointer transition-all duration-200 hover:shadow-lg bg-white/80 backdrop-blur-sm border-pink-200 hover:border-pink-300 ${
+                    note.isPinned ? 'ring-2 ring-pink-500' : ''
                   }`}
                 >
                   <CardHeader className="pb-3">
                     <div className="flex justify-between items-start">
-                      <CardTitle className="text-lg font-semibold line-clamp-2">
+                      <CardTitle className="text-lg font-semibold line-clamp-2 text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text">
                         {note.title}
                       </CardTitle>
                       {note.isPinned && (
-                        <div className="text-blue-500 text-xs font-medium">PINNED</div>
+                        <div className="text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-xs font-medium">PINNED</div>
                       )}
                     </div>
                     <CardDescription className="text-sm text-gray-500">
@@ -515,7 +515,7 @@ const Desktop = () => {
                         {note.tags.map((tag, index) => (
                           <span
                             key={index}
-                            className="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full"
+                            className="inline-block bg-gradient-to-r from-pink-100 to-purple-100 text-pink-700 text-xs px-2 py-1 rounded-full border border-pink-200"
                           >
                             {tag}
                           </span>

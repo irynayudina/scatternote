@@ -56,16 +56,16 @@ const HomeBoard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100">
       {/* Header */}
-      <header className="bg-white shadow">
+      <header className="bg-white/80 backdrop-blur-sm shadow-lg border-b border-pink-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+              <h1 className="text-3xl font-bold text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text">Dashboard</h1>
               <p className="text-gray-600">Welcome back, {user.username}!</p>
             </div>
-            <Button onClick={handleLogout} variant="outline">
+            <Button onClick={handleLogout} variant="outline" className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400">
               Logout
             </Button>
           </div>
@@ -77,9 +77,9 @@ const HomeBoard = () => {
         <div className="px-4 py-6 sm:px-0">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* User Info Card */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="bg-white/80 backdrop-blur-sm overflow-hidden shadow-lg rounded-lg border border-pink-200 hover:shadow-xl transition-all duration-200">
               <div className="px-4 py-5 sm:p-6">
-                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                <h3 className="text-lg leading-6 font-medium text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text mb-4">
                   User Information
                 </h3>
                 <dl className="space-y-3">
@@ -106,22 +106,22 @@ const HomeBoard = () => {
             </div>
 
             {/* Quick Actions Card */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="bg-white/80 backdrop-blur-sm overflow-hidden shadow-lg rounded-lg border border-pink-200 hover:shadow-xl transition-all duration-200">
               <div className="px-4 py-5 sm:p-6">
-                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                <h3 className="text-lg leading-6 font-medium text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text mb-4">
                   Quick Actions
                 </h3>
                 <div className="space-y-3">
-                  <Button className="w-full" variant="outline">
+                  <Button className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white border-0" variant="outline">
                     Create New Note
                   </Button>
-                  <Button className="w-full" variant="outline" onClick={() => navigate('/desktop/1')}>
+                  <Button className="w-full border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400" variant="outline" onClick={() => navigate('/desktop/1')}>
                     Go to Desk
                   </Button>
-                  <Button className="w-full" variant="outline" onClick={() => navigate('/knowledge-base')}>
+                  <Button className="w-full border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400" variant="outline" onClick={() => navigate('/knowledge-base')}>
                     Knowledge Base
                   </Button>
-                  <Button className="w-full" variant="outline" onClick={() => navigate('/settings')}>
+                  <Button className="w-full border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400" variant="outline" onClick={() => navigate('/settings')}>
                     Settings
                   </Button>
                 </div>
@@ -129,23 +129,23 @@ const HomeBoard = () => {
             </div>
 
             {/* Stats Card */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="bg-white/80 backdrop-blur-sm overflow-hidden shadow-lg rounded-lg border border-pink-200 hover:shadow-xl transition-all duration-200">
               <div className="px-4 py-5 sm:p-6">
-                <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                <h3 className="text-lg leading-6 font-medium text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text mb-4">
                   Statistics
                 </h3>
                 <dl className="space-y-3">
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Total Notes</dt>
-                    <dd className="text-2xl font-semibold text-gray-900">0</dd>
+                    <dd className="text-2xl font-semibold text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text">0</dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-gray-500">This Week</dt>
-                    <dd className="text-2xl font-semibold text-gray-900">0</dd>
+                    <dd className="text-2xl font-semibold text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text">0</dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Storage Used</dt>
-                    <dd className="text-2xl font-semibold text-gray-900">0 MB</dd>
+                    <dd className="text-2xl font-semibold text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text">0 MB</dd>
                   </div>
                 </dl>
               </div>
@@ -153,9 +153,9 @@ const HomeBoard = () => {
           </div>
 
           {/* Welcome Message */}
-          <div className="mt-8 bg-white overflow-hidden shadow rounded-lg">
+          <div className="mt-8 bg-white/80 backdrop-blur-sm overflow-hidden shadow-lg rounded-lg border border-pink-200 hover:shadow-xl transition-all duration-200">
             <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900 mb-2">
+              <h3 className="text-lg leading-6 font-medium text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text mb-2">
                 Welcome to ScatterNote!
               </h3>
               <p className="text-gray-600">
