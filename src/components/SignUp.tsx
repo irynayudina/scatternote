@@ -6,57 +6,46 @@ import { useEffect, useState } from 'react';
 const SignUp = () => {
     const { loginWithRedirect, isAuthenticated, user, isLoading } = useAuth0();
     const navigate = useNavigate();
-    const [isCreatingUser, setIsCreatingUser] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (isAuthenticated && user) {
-            createUserInBackend();
+            // Check if user already exists in our backend
+            checkExistingUser();
         }
     }, [isAuthenticated, user]);
 
-    const createUserInBackend = async () => {
+    const checkExistingUser = async () => {
         if (!user) return;
         
-        setIsCreatingUser(true);
-        setError(null);
         try {
-            const response = await fetch('http://localhost:3000/auth/create-user', {
-                method: 'POST',
+            const response = await fetch(`http://localhost:3000/auth/profile`, {
+                method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${user.sub}` // This would need proper JWT token in production
                 },
-                body: JSON.stringify({
-                    sub: user.sub,
-                    email: user.email,
-                    email_verified: user.email_verified,
-                    name: user.name,
-                    nickname: user.nickname,
-                    picture: user.picture,
-                    updated_at: user.updated_at
-                }),
             });
 
             if (response.ok) {
                 const userData = await response.json();
-                // Store user data in session storage
+                // User already exists, store data and redirect to home
                 sessionStorage.setItem('user', JSON.stringify(userData));
                 if (user.sub) {
                     sessionStorage.setItem('token', user.sub);
                 }
-                
-                // Redirect to home-board
                 navigate('/home-board');
+            } else if (response.status === 401) {
+                // User doesn't exist yet, redirect to username selection
+                navigate('/username-selection');
             } else {
-                const errorData = await response.json().catch(() => ({}));
-                console.error('Failed to create user in backend:', errorData);
-                setError('Failed to create your account. Please try again.');
+                // Some other error, redirect to username selection as fallback
+                navigate('/username-selection');
             }
         } catch (error) {
-            console.error('Error creating user:', error);
-            setError('Network error. Please check your connection and try again.');
-        } finally {
-            setIsCreatingUser(false);
+            console.error('Error checking existing user:', error);
+            // On error, redirect to username selection as fallback
+            navigate('/username-selection');
         }
     };
 
@@ -69,14 +58,12 @@ const SignUp = () => {
         });
     };
 
-    if (isLoading || isCreatingUser) {
+    if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-200 via-purple-200 to-pink-300">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-                    <p className="mt-4 text-purple-600 font-medium">
-                        {isCreatingUser ? 'Setting up your account...' : 'Loading...'}
-                    </p>
+                    <p className="mt-4 text-purple-600 font-medium">Loading...</p>
                 </div>
             </div>
         );
