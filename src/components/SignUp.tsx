@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 
-const LogIn = () => {
+const SignUp = () => {
     const { loginWithRedirect, isAuthenticated, user, isLoading } = useAuth0();
     const navigate = useNavigate();
     const [isCreatingUser, setIsCreatingUser] = useState(false);
@@ -11,11 +11,11 @@ const LogIn = () => {
 
     useEffect(() => {
         if (isAuthenticated && user) {
-            createOrGetUserInBackend();
+            createUserInBackend();
         }
     }, [isAuthenticated, user]);
 
-    const createOrGetUserInBackend = async () => {
+    const createUserInBackend = async () => {
         if (!user) return;
         
         setIsCreatingUser(true);
@@ -49,20 +49,24 @@ const LogIn = () => {
                 navigate('/home-board');
             } else {
                 const errorData = await response.json().catch(() => ({}));
-                console.error('Failed to create/get user in backend:', errorData);
-                setError('Failed to sign you in. Please try again.');
+                console.error('Failed to create user in backend:', errorData);
+                setError('Failed to create your account. Please try again.');
             }
         } catch (error) {
-            console.error('Error creating/getting user:', error);
+            console.error('Error creating user:', error);
             setError('Network error. Please check your connection and try again.');
         } finally {
             setIsCreatingUser(false);
         }
     };
 
-    const handleLogin = () => {
+    const handleSignUp = () => {
         setError(null);
-        loginWithRedirect();
+        loginWithRedirect({
+            authorizationParams: {
+                screen_hint: 'signup',
+            },
+        });
     };
 
     if (isLoading || isCreatingUser) {
@@ -71,7 +75,7 @@ const LogIn = () => {
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
                     <p className="mt-4 text-purple-600 font-medium">
-                        {isCreatingUser ? 'Signing you in...' : 'Loading...'}
+                        {isCreatingUser ? 'Setting up your account...' : 'Loading...'}
                     </p>
                 </div>
             </div>
@@ -83,10 +87,10 @@ const LogIn = () => {
             <div className="max-w-md w-full space-y-8">
                 <div>
                     <h2 className="mt-6 text-center text-3xl font-extrabold text-purple-600">
-                        Sign in to your account
+                        Create your account
                     </h2>
                     <p className="mt-2 text-center text-sm text-purple-500">
-                        Welcome back to ScatterNote
+                        Join ScatterNote and start organizing your thoughts
                     </p>
                 </div>
                 
@@ -98,20 +102,20 @@ const LogIn = () => {
                 
                 <div className="space-y-6">
                     <Button 
-                        onClick={handleLogin}
+                        onClick={handleSignUp}
                         className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-medium py-3 px-4 rounded-md shadow-lg transition-all duration-200 transform hover:scale-105"
                     >
-                        Sign in with Auth0
+                        Sign up with Auth0
                     </Button>
                     
                     <div className="text-center">
                         <p className="text-sm text-purple-600">
-                            Don't have an account?{' '}
+                            Already have an account?{' '}
                             <button 
-                                onClick={() => navigate('/signup')}
+                                onClick={() => navigate('/')}
                                 className="font-medium text-purple-500 hover:text-purple-400 underline"
                             >
-                                Sign up here
+                                Sign in here
                             </button>
                         </p>
                     </div>
@@ -121,4 +125,4 @@ const LogIn = () => {
     );
 };
 
-export default LogIn;    
+export default SignUp; 

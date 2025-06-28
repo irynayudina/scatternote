@@ -1,52 +1,94 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
+import { useAuth0 } from '@auth0/auth0-react';
+import LogoutButton from './LogoutButton'
 
 interface UserData {
   id: number
   username: string
   email: string
-  token: string
+  picture?: string
   role: string
   createdAt: string
 }
 
 const HomeBoard = () => {
   const navigate = useNavigate()
+  const { user: auth0User, isAuthenticated, isLoading: auth0Loading } = useAuth0()
   const [user, setUser] = useState<UserData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Check if user is logged in
-    const userData = sessionStorage.getItem('user')
-    const token = sessionStorage.getItem('token')
+    if (auth0Loading) return;
 
-    if (!userData || !token) {
+    if (!isAuthenticated || !auth0User) {
       navigate('/')
       return
     }
 
-    try {
-      const parsedUser = JSON.parse(userData)
-      setUser(parsedUser)
-    } catch (error) {
-      console.error('Error parsing user data:', error)
-      navigate('/')
-    } finally {
-      setIsLoading(false)
+    // Check if user data is in session storage
+    const userData = sessionStorage.getItem('user')
+    
+    if (userData) {
+      try {
+        const parsedUser = JSON.parse(userData)
+        setUser(parsedUser)
+      } catch (error) {
+        console.error('Error parsing user data:', error)
+        // If session data is corrupted, try to get user from backend
+        fetchUserFromBackend()
+      }
+    } else {
+      // No session data, try to get user from backend
+      fetchUserFromBackend()
     }
-  }, [navigate])
+    
+    setIsLoading(false)
+  }, [auth0User, isAuthenticated, auth0Loading, navigate])
 
-  const handleLogout = () => {
-    sessionStorage.removeItem('user')
-    sessionStorage.removeItem('token')
-    navigate('/')
+  const fetchUserFromBackend = async () => {
+    if (!auth0User) return;
+    
+    try {
+      const response = await fetch('http://localhost:3000/auth/create-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sub: auth0User.sub,
+          email: auth0User.email,
+          email_verified: auth0User.email_verified,
+          name: auth0User.name,
+          nickname: auth0User.nickname,
+          picture: auth0User.picture,
+          updated_at: auth0User.updated_at
+        }),
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        sessionStorage.setItem('user', JSON.stringify(userData));
+        if (auth0User.sub) {
+          sessionStorage.setItem('token', auth0User.sub);
+        }
+        setUser(userData);
+      } else {
+        console.error('Failed to get user from backend');
+      }
+    } catch (error) {
+      console.error('Error fetching user:', error);
+    }
   }
 
-  if (isLoading) {
+  if (auth0Loading || isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+          <p className="mt-4 text-purple-600 font-medium">Loading...</p>
+        </div>
       </div>
     )
   }
@@ -61,13 +103,20 @@ const HomeBoard = () => {
       <header className="bg-white/80 backdrop-blur-sm shadow-lg border-b border-pink-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text">Dashboard</h1>
-              <p className="text-gray-600">Welcome back, {user.username}!</p>
+            <div className="flex items-center space-x-4">
+              {user.picture && (
+                <img 
+                  src={user.picture} 
+                  alt="Profile" 
+                  className="w-10 h-10 rounded-full border-2 border-pink-200"
+                />
+              )}
+              <div>
+                <h1 className="text-3xl font-bold text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text">Dashboard</h1>
+                <p className="text-gray-600">Welcome back, {user.username}!</p>
+              </div>
             </div>
-            <Button onClick={handleLogout} variant="outline" className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400">
-              Logout
-            </Button>
+            <LogoutButton />
           </div>
         </div>
       </header>
