@@ -6,7 +6,7 @@ import { Plus, Search, Filter, Grid, List } from "lucide-react"
 import CreateNoteModal from "./CreateNoteModal"
 import NoteViewer from "./NoteViewer"
 import { apiService } from "@/services/api"
-import type { Note, Desktop } from "@/services/api"
+import type { Note, Desktop as DesktopType } from "@/services/api"
 
 interface UserData {
   id: number
@@ -21,13 +21,13 @@ const Desktop = () => {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
   const [user, setUser] = useState<UserData | null>(null)
-  const [desktop, setDesktop] = useState<Desktop | null>(null)
+  const [desktop, setDesktop] = useState<DesktopType | null>(null)
   const [notes, setNotes] = useState<Note[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [searchQuery, setSearchQuery] = useState('')
   const [activeDesktopId, setActiveDesktopId] = useState<number>(1)
-  const [desktops, setDesktops] = useState<Desktop[]>([])
+  const [desktops, setDesktops] = useState<DesktopType[]>([])
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [selectedNote, setSelectedNote] = useState<Note | null>(null)
   const [isNoteViewerOpen, setIsNoteViewerOpen] = useState(false)
