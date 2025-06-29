@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { apiService } from '../services/api';
 
 const LogIn = () => {
-    const { loginWithRedirect, isAuthenticated, user, isLoading } = useAuth0();
+    const { loginWithRedirect, isAuthenticated, user, isLoading, logout } = useAuth0();
     const navigate = useNavigate();
     const [error, setError] = useState<string | null>(null);
 
@@ -42,6 +42,17 @@ const LogIn = () => {
     const handleLogin = () => {
         setError(null);
         loginWithRedirect();
+    };
+
+    const handleStartOver = () => {
+        // Clear session storage
+        sessionStorage.clear();
+        // Logout from Auth0 and redirect to login page
+        logout({
+            logoutParams: {
+                returnTo: window.location.origin,
+            },
+        });
     };
 
     if (isLoading) {
@@ -90,6 +101,19 @@ const LogIn = () => {
                             >
                                 Sign up here
                             </button>
+                        </p>
+                    </div>
+
+                    <div className="pt-4 border-t border-purple-200">
+                        <Button 
+                            onClick={handleStartOver}
+                            variant="outline"
+                            className="w-full text-purple-600 border-purple-300 hover:bg-purple-50 font-medium py-2 px-4 rounded-md transition-all duration-200"
+                        >
+                            Start Over
+                        </Button>
+                        <p className="text-xs text-purple-500 text-center mt-2">
+                            Clear all data and start fresh
                         </p>
                     </div>
                 </div>
