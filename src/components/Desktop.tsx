@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Search, Filter, Grid, List } from "lucide-react"
+import CreateNoteModal from "./CreateNoteModal"
 
 interface UserData {
   id: number
@@ -43,6 +44,7 @@ const Desktop = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeDesktopId, setActiveDesktopId] = useState<number>(1)
   const [desktops, setDesktops] = useState<Desktop[]>([])
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const carouselRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -180,8 +182,14 @@ const Desktop = () => {
   }
 
   const handleCreateNote = () => {
-    // Navigate to note creation page or open modal
-    console.log('Create new note')
+    setIsCreateModalOpen(true)
+  }
+
+  const handleNoteCreated = () => {
+    // Refresh notes after creation
+    if (user) {
+      loadDesktopData(user.id, parseInt(id || '1'))
+    }
   }
 
   const handleDesktopChange = (desktopId: number) => {
@@ -297,8 +305,17 @@ const Desktop = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100">
+      {/* Create Note Modal */}
+      <CreateNoteModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        desktopId={parseInt(id || '1')}
+        userId={user?.id || 0}
+        onNoteCreated={handleNoteCreated}
+      />
+
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm sticky top-0 pt-8 z-50 border-b border-pink-200">
+      <header className="bg-white/80 backdrop-blur-sm sticky top-0 pt-8 z-10 border-b border-pink-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>

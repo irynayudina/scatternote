@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { useAuth0 } from '@auth0/auth0-react';
 import LogoutButton from './LogoutButton'
+import CreateDesktopModal from './CreateDesktopModal'
 
 interface UserData {
   id: number
@@ -18,6 +19,7 @@ const HomeBoard = () => {
   const { user: auth0User, isAuthenticated, isLoading: auth0Loading } = useAuth0()
   const [user, setUser] = useState<UserData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
   useEffect(() => {
     if (auth0Loading) return;
@@ -82,6 +84,15 @@ const HomeBoard = () => {
     }
   }
 
+  const handleCreateDesktop = () => {
+    setIsCreateModalOpen(true)
+  }
+
+  const handleDesktopCreated = () => {
+    // You can add logic here to refresh desktop data if needed
+    console.log('Desktop created successfully')
+  }
+
   if (auth0Loading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100">
@@ -99,6 +110,14 @@ const HomeBoard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100">
+      {/* Create Desktop Modal */}
+      <CreateDesktopModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        userId={user?.id || 0}
+        onDesktopCreated={handleDesktopCreated}
+      />
+
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm shadow-lg border-b border-pink-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -164,9 +183,18 @@ const HomeBoard = () => {
                   <Button className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white border-0" variant="outline">
                     Create New Note
                   </Button>
-                  <Button className="w-full border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400" variant="outline" onClick={() => navigate('/desktop/1')}>
-                    Go to Desk
-                  </Button>
+                  <div className="flex space-x-2">
+                    <Button className="flex-1 border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400" variant="outline" onClick={() => navigate('/desktop/1')}>
+                      Go to Desk
+                    </Button>
+                    <Button 
+                      className="w-12 border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400" 
+                      variant="outline"
+                      onClick={handleCreateDesktop}
+                    >
+                      +
+                    </Button>
+                  </div>
                   <Button className="w-full border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400" variant="outline" onClick={() => navigate('/knowledge-base')}>
                     Knowledge Base
                   </Button>
