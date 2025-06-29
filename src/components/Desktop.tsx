@@ -2,8 +2,9 @@ import { useEffect, useState, useRef } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Search, Filter, Grid, List } from "lucide-react"
+import { Plus, Search, Filter, Grid, List, Monitor, ArrowLeft } from "lucide-react"
 import CreateNoteModal from "./CreateNoteModal"
+import CreateDesktopModal from "./CreateDesktopModal"
 import NoteViewer from "./NoteViewer"
 import { apiService } from "@/services/api"
 import type { Note, Desktop as DesktopType } from "@/services/api"
@@ -29,6 +30,7 @@ const Desktop = () => {
   const [activeDesktopId, setActiveDesktopId] = useState<number>(1)
   const [desktops, setDesktops] = useState<DesktopType[]>([])
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [isCreateDesktopModalOpen, setIsCreateDesktopModalOpen] = useState(false)
   const [selectedNote, setSelectedNote] = useState<Note | null>(null)
   const [isNoteViewerOpen, setIsNoteViewerOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -274,6 +276,22 @@ const Desktop = () => {
 
   const filteredNotes = notes // Notes are already filtered by the API
 
+  const handleCreateDesktop = () => {
+    setIsCreateDesktopModalOpen(true)
+  }
+
+  const handleDesktopCreated = async () => {
+    // Refresh desktops after creation
+    if (user) {
+      await loadDesktops(user.id)
+      // If this was the first desktop, navigate to it
+      const updatedDesktops = await apiService.getDesktops(user.id)
+      if (updatedDesktops.length === 1) {
+        navigate(`/desktop/${updatedDesktops[0].id}`)
+      }
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -312,6 +330,14 @@ const Desktop = () => {
         userId={user?.id || 0}
       />
 
+      {/* Create Desktop Modal */}
+      <CreateDesktopModal
+        isOpen={isCreateDesktopModalOpen}
+        onClose={() => setIsCreateDesktopModalOpen(false)}
+        userId={user?.id || 0}
+        onDesktopCreated={handleDesktopCreated}
+      />
+
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm sticky top-0 pt-8 z-10 border-b border-pink-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -342,77 +368,116 @@ const Desktop = () => {
         </div>
       )}
 
-      {/* Desktop Carousel */}
-      <div className="bg-white/60 backdrop-blur-sm border-b border-pink-200 py-4">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div 
-            ref={carouselRef}
-            className="relative overflow-visible"
-            onWheel={handleWheel}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-            style={{ 
-              userSelect: 'none',
-              WebkitUserSelect: 'none',
-              MozUserSelect: 'none',
-              msUserSelect: 'none',
-              height: '120px',
-              zIndex: 10
-            }}
-          >
+      {/* Empty Desktop State */}
+      {!isLoading && desktops.length === 0 && (
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100">
+          <div className="max-w-md mx-auto text-center px-6">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-pink-200 p-8">
+              <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-pink-100 to-purple-100 rounded-full flex items-center justify-center">
+                <Monitor className="h-10 w-10 text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text" />
+              </div>
+              
+              <h2 className="text-2xl font-bold text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text mb-4">
+                Welcome to ScatterNote!
+              </h2>
+              
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                You don't have any desktops yet. Desktops help you organize your notes into different workspaces. 
+                Create your first desktop to get started with note-taking.
+              </p>
+              
+              <div className="space-y-4">
+                <Button 
+                  onClick={handleCreateDesktop}
+                  className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white border-0 py-3"
+                >
+                  <Monitor className="h-5 w-5 mr-2" />
+                  Create Your First Desktop
+                </Button>
+                
+                <Button 
+                  onClick={() => navigate('/home-board')}
+                  variant="outline"
+                  className="w-full border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Home Board
+                </Button>
+              </div>
+              
+              <div className="mt-6 pt-6 border-t border-pink-200">
+                <p className="text-xs text-gray-500">
+                  💡 Tip: You can create multiple desktops for different projects or topics
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Desktop Carousel - Only show if there are desktops */}
+      {desktops.length > 0 && (
+        <div className="bg-white/60 backdrop-blur-sm border-b border-pink-200 py-4">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div 
-              className="flex justify-center items-center space-x-8 py-4 transition-all duration-300 ease-out"
+              ref={carouselRef}
+              className="relative overflow-visible"
+              onWheel={handleWheel}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
               style={{ 
                 userSelect: 'none',
                 WebkitUserSelect: 'none',
                 MozUserSelect: 'none',
-                msUserSelect: 'none'
+                msUserSelect: 'none',
+                height: '120px',
+                zIndex: 10
               }}
             >
-              {rearrangedDesktops.map((desktopItem) => {
-                const isActive = desktopItem.id === activeDesktopId
-                
-                // Determine scale and styling based on state
-                let scale = 1
-                let bgColor = 'bg-gray-100 border-gray-300 text-gray-600'
-                let textColor = 'text-gray-500'
-                
-                if (isActive) {
-                  scale = 1.25
-                  bgColor = 'bg-gradient-to-r from-pink-500 to-purple-500 border-pink-600 text-white'
-                  textColor = 'text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text'
-                }
-                
-                return (
-                  <div
-                    key={desktopItem.id}
-                    className={`flex flex-col items-center transition-all duration-300 cursor-pointer ${
-                      isActive ? 'scale-125' : 'scale-100 opacity-60 hover:opacity-80'
-                    }`}
-                    onClick={() => handleDesktopChange(desktopItem.id)}
-                    style={{
-                      transform: `scale(${scale})`,
-                      opacity: isActive ? 1 : 0.6,
-                      transition: 'all 0.3s ease-out',
-                      userSelect: 'none',
-                      WebkitUserSelect: 'none',
-                      MozUserSelect: 'none',
-                      msUserSelect: 'none',
-                      WebkitTouchCallout: 'none'
-                    }}
-                  >
+              <div 
+                className="flex justify-center items-center space-x-8 py-4 transition-all duration-300 ease-out"
+                style={{ 
+                  userSelect: 'none',
+                  WebkitUserSelect: 'none',
+                  MozUserSelect: 'none',
+                  msUserSelect: 'none'
+                }}
+              >
+                {rearrangedDesktops.map((desktopItem) => {
+                  const isActive = desktopItem.id === activeDesktopId
+                  
+                  // Determine scale and styling based on state
+                  let scale = 1
+                  let bgColor = 'bg-gray-100 border-gray-300 text-gray-600'
+                  let textColor = 'text-gray-500'
+                  
+                  if (isActive) {
+                    scale = 1.25
+                    bgColor = 'bg-gradient-to-r from-pink-500 to-purple-500 border-pink-600 text-white'
+                    textColor = 'text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text'
+                  }
+                  
+                  return (
                     <div
-                      className={`w-16 h-16 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${bgColor}`}
+                      key={desktopItem.id}
+                      className={`flex flex-col items-center transition-all duration-300 cursor-pointer ${
+                        isActive ? 'scale-125' : 'scale-100 opacity-60 hover:opacity-80'
+                      }`}
+                      onClick={() => handleDesktopChange(desktopItem.id)}
                       style={{
+                        transform: `scale(${scale})`,
+                        opacity: isActive ? 1 : 0.6,
+                        transition: 'all 0.3s ease-out',
                         userSelect: 'none',
                         WebkitUserSelect: 'none',
                         MozUserSelect: 'none',
-                        msUserSelect: 'none'
+                        msUserSelect: 'none',
+                        WebkitTouchCallout: 'none'
                       }}
                     >
-                      <span 
-                        className="text-sm font-semibold"
+                      <div
+                        className={`w-16 h-16 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${bgColor}`}
                         style={{
                           userSelect: 'none',
                           WebkitUserSelect: 'none',
@@ -420,142 +485,154 @@ const Desktop = () => {
                           msUserSelect: 'none'
                         }}
                       >
-                        {desktopItem.name.charAt(0).toUpperCase()}
+                        <span 
+                          className="text-sm font-semibold"
+                          style={{
+                            userSelect: 'none',
+                            WebkitUserSelect: 'none',
+                            MozUserSelect: 'none',
+                            msUserSelect: 'none'
+                          }}
+                        >
+                          {desktopItem.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <span 
+                        className={`text-xs mt-2 font-medium transition-all duration-300 ${textColor}`}
+                        style={{
+                          userSelect: 'none',
+                          WebkitUserSelect: 'none',
+                          MozUserSelect: 'none',
+                          msUserSelect: 'none'
+                        }}
+                      >
+                        {desktopItem.name}
                       </span>
                     </div>
-                    <span 
-                      className={`text-xs mt-2 font-medium transition-all duration-300 ${textColor}`}
-                      style={{
-                        userSelect: 'none',
-                        WebkitUserSelect: 'none',
-                        MozUserSelect: 'none',
-                        msUserSelect: 'none'
-                      }}
-                    >
-                      {desktopItem.name}
-                    </span>
-                  </div>
-                )
-              })}
+                  )
+                })}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          {/* Toolbar */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0 mb-6">
-            <div className="flex items-center space-x-4">
-              <Button onClick={handleCreateNote} className="flex items-center space-x-2 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white border-0">
-                <Plus className="h-4 w-4" />
-                <span>Create Note</span>
-              </Button>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-pink-400" />
-                <input
-                  type="text"
-                  placeholder="Search notes..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-pink-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white/80 backdrop-blur-sm"
-                />
+      {/* Main Content - Only show if there are desktops */}
+      {desktops.length > 0 && (
+        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          <div className="px-4 py-6 sm:px-0">
+            {/* Toolbar */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0 mb-6">
+              <div className="flex items-center space-x-4">
+                <Button onClick={handleCreateNote} className="flex items-center space-x-2 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white border-0">
+                  <Plus className="h-4 w-4" />
+                  <span>Create Note</span>
+                </Button>
               </div>
               
-              {/* Filter */}
-              <Button variant="outline" size="sm" className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400">
-                <Filter className="h-4 w-4 mr-2" />
-                Filter
-              </Button>
-              
-              {/* View Mode Toggle */}
-              <div className="flex border border-pink-300 rounded-md">
-                <Button
-                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('grid')}
-                  className={`rounded-r-none ${viewMode === 'grid' ? 'bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white border-0' : 'text-pink-600 hover:bg-pink-50'}`}
-                >
-                  <Grid className="h-4 w-4" />
+              <div className="flex items-center space-x-4">
+                {/* Search */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-pink-400" />
+                  <input
+                    type="text"
+                    placeholder="Search notes..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 pr-4 py-2 border border-pink-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white/80 backdrop-blur-sm"
+                  />
+                </div>
+                
+                {/* Filter */}
+                <Button variant="outline" size="sm" className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400">
+                  <Filter className="h-4 w-4 mr-2" />
+                  Filter
                 </Button>
-                <Button
-                  variant={viewMode === 'list' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setViewMode('list')}
-                  className={`rounded-l-none ${viewMode === 'list' ? 'bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white border-0' : 'text-pink-600 hover:bg-pink-50'}`}
-                >
-                  <List className="h-4 w-4" />
-                </Button>
+                
+                {/* View Mode Toggle */}
+                <div className="flex border border-pink-300 rounded-md">
+                  <Button
+                    variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('grid')}
+                    className={`rounded-r-none ${viewMode === 'grid' ? 'bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white border-0' : 'text-pink-600 hover:bg-pink-50'}`}
+                  >
+                    <Grid className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'list' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('list')}
+                    className={`rounded-l-none ${viewMode === 'list' ? 'bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white border-0' : 'text-pink-600 hover:bg-pink-50'}`}
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Notes Grid/List */}
-          {filteredNotes.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-gray-500 text-lg mb-4">
-                {searchQuery ? 'No notes found matching your search' : 'No notes found'}
+            {/* Notes Grid/List */}
+            {filteredNotes.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-gray-500 text-lg mb-4">
+                  {searchQuery ? 'No notes found matching your search' : 'No notes found'}
+                </div>
+                {!searchQuery && (
+                  <Button onClick={handleCreateNote} variant="outline" className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400">
+                    Create your first note
+                  </Button>
+                )}
               </div>
-              {!searchQuery && (
-                <Button onClick={handleCreateNote} variant="outline" className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400">
-                  Create your first note
-                </Button>
-              )}
-            </div>
-          ) : (
-            <div className={viewMode === 'grid' 
-              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-              : "space-y-4"
-            }>
-              {filteredNotes.map((note) => (
-                <Card 
-                  key={note.id} 
-                  className={`cursor-pointer transition-all duration-200 hover:shadow-lg bg-white/80 backdrop-blur-sm border-pink-200 hover:border-pink-300 ${
-                    note.isPinned ? 'ring-2 ring-pink-500' : ''
-                  }`}
-                  onClick={() => handleNoteClick(note)}
-                >
-                  <CardHeader className="pb-3">
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-lg font-semibold line-clamp-2 text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text">
-                        {note.title}
-                      </CardTitle>
-                      {note.isPinned && (
-                        <div className="text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-xs font-medium">PINNED</div>
-                      )}
-                    </div>
-                    <CardDescription className="text-sm text-gray-500">
-                      {new Date(note.updatedAt).toLocaleDateString()}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-700 line-clamp-3 mb-3">
-                      {note.content}
-                    </p>
-                    {note.tags && note.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {note.tags.map((tagItem, index) => (
-                          <span
-                            key={index}
-                            className="inline-block bg-gradient-to-r from-pink-100 to-purple-100 text-pink-700 text-xs px-2 py-1 rounded-full border border-pink-200"
-                          >
-                            {tagItem.tag.name}
-                          </span>
-                        ))}
+            ) : (
+              <div className={viewMode === 'grid' 
+                ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                : "space-y-4"
+              }>
+                {filteredNotes.map((note) => (
+                  <Card 
+                    key={note.id} 
+                    className={`cursor-pointer transition-all duration-200 hover:shadow-lg bg-white/80 backdrop-blur-sm border-pink-200 hover:border-pink-300 ${
+                      note.isPinned ? 'ring-2 ring-pink-500' : ''
+                    }`}
+                    onClick={() => handleNoteClick(note)}
+                  >
+                    <CardHeader className="pb-3">
+                      <div className="flex justify-between items-start">
+                        <CardTitle className="text-lg font-semibold line-clamp-2 text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text">
+                          {note.title}
+                        </CardTitle>
+                        {note.isPinned && (
+                          <div className="text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-xs font-medium">PINNED</div>
+                        )}
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
-      </main>
+                      <CardDescription className="text-sm text-gray-500">
+                        {new Date(note.updatedAt).toLocaleDateString()}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-gray-700 line-clamp-3 mb-3">
+                        {note.content}
+                      </p>
+                      {note.tags && note.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {note.tags.map((tagItem, index) => (
+                            <span
+                              key={index}
+                              className="inline-block bg-gradient-to-r from-pink-100 to-purple-100 text-pink-700 text-xs px-2 py-1 rounded-full border border-pink-200"
+                            >
+                              {tagItem.tag.name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        </main>
+      )}
     </div>
   )
 }

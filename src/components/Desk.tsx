@@ -5,12 +5,13 @@ import { useAuth0 } from '@auth0/auth0-react';
 import LogoutButton from './LogoutButton'
 import CreateDesktopModal from './CreateDesktopModal'
 import { apiService } from '../services/api'
-import type { User } from '../services/api'
+import type { User, Desktop } from '../services/api'
 
 const HomeBoard = () => {
   const navigate = useNavigate()
   const { user: auth0User, isAuthenticated, isLoading: auth0Loading } = useAuth0()
   const [user, setUser] = useState<User | null>(null)
+  const [desktops, setDesktops] = useState<Desktop[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
@@ -29,6 +30,7 @@ const HomeBoard = () => {
       try {
         const parsedUser = JSON.parse(userData)
         setUser(parsedUser)
+        loadDesktops(parsedUser.id)
       } catch (error) {
         console.error('Error parsing user data:', error)
         // If session data is corrupted, try to get user from backend
@@ -61,8 +63,18 @@ const HomeBoard = () => {
         sessionStorage.setItem('token', auth0User.sub);
       }
       setUser(userData);
+      loadDesktops(userData.id)
     } catch (error) {
       console.error('Error fetching user:', error);
+    }
+  }
+
+  const loadDesktops = async (userId: number) => {
+    try {
+      const desktopsData = await apiService.getDesktops(userId)
+      setDesktops(desktopsData)
+    } catch (error) {
+      console.error('Error loading desktops:', error)
     }
   }
 
@@ -70,8 +82,11 @@ const HomeBoard = () => {
     setIsCreateModalOpen(true)
   }
 
-  const handleDesktopCreated = () => {
-    // You can add logic here to refresh desktop data if needed
+  const handleDesktopCreated = async () => {
+    // Refresh desktop data after creation
+    if (user) {
+      await loadDesktops(user.id)
+    }
     console.log('Desktop created successfully')
   }
 
@@ -162,21 +177,42 @@ const HomeBoard = () => {
                   Quick Actions
                 </h3>
                 <div className="space-y-3">
-                  <Button className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white border-0" variant="outline">
-                    Create New Note
-                  </Button>
-                  <div className="flex space-x-2">
-                    <Button className="flex-1 border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400" variant="outline" onClick={() => navigate('/desktop/1')}>
-                      Go to Desk
-                    </Button>
-                    <Button 
-                      className="w-12 border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400" 
-                      variant="outline"
-                      onClick={handleCreateDesktop}
-                    >
-                      +
-                    </Button>
-                  </div>
+                  {desktops.length === 0 ? (
+                    <>
+                      <Button 
+                        onClick={handleCreateDesktop}
+                        className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white border-0"
+                      >
+                        Create Your First Desktop
+                      </Button>
+                      <div className="text-center py-4">
+                        <p className="text-sm text-gray-500 mb-2">No desktops yet</p>
+                        <p className="text-xs text-gray-400">Create a desktop to start organizing your notes</p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <Button className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white border-0" variant="outline">
+                        Create New Note
+                      </Button>
+                      <div className="flex space-x-2">
+                        <Button 
+                          className="flex-1 border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400" 
+                          variant="outline" 
+                          onClick={() => navigate(`/desktop/${desktops[0].id}`)}
+                        >
+                          Go to Desk
+                        </Button>
+                        <Button 
+                          className="w-12 border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400" 
+                          variant="outline"
+                          onClick={handleCreateDesktop}
+                        >
+                          +
+                        </Button>
+                      </div>
+                    </>
+                  )}
                   <Button className="w-full border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400" variant="outline" onClick={() => navigate('/knowledge-base')}>
                     Knowledge Base
                   </Button>
@@ -195,11 +231,11 @@ const HomeBoard = () => {
                 </h3>
                 <dl className="space-y-3">
                   <div>
-                    <dt className="text-sm font-medium text-gray-500">Total Notes</dt>
-                    <dd className="text-2xl font-semibold text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text">0</dd>
+                    <dt className="text-sm font-medium text-gray-500">Total Desktops</dt>
+                    <dd className="text-2xl font-semibold text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text">{desktops.length}</dd>
                   </div>
                   <div>
-                    <dt className="text-sm font-medium text-gray-500">This Week</dt>
+                    <dt className="text-sm font-medium text-gray-500">Total Notes</dt>
                     <dd className="text-2xl font-semibold text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text">0</dd>
                   </div>
                   <div>
@@ -215,11 +251,13 @@ const HomeBoard = () => {
           <div className="mt-8 bg-white/80 backdrop-blur-sm overflow-hidden shadow-lg rounded-lg border border-pink-200 hover:shadow-xl transition-all duration-200">
             <div className="px-4 py-5 sm:p-6">
               <h3 className="text-lg leading-6 font-medium text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text mb-2">
-                Welcome to ScatterNote!
+                {desktops.length === 0 ? 'Welcome to ScatterNote!' : 'Welcome back to ScatterNote!'}
               </h3>
               <p className="text-gray-600">
-                This is your personal workspace where you can create, organize, and manage your notes. 
-                Get started by creating your first note or explore the features available to you.
+                {desktops.length === 0 
+                  ? "This is your personal workspace where you can create, organize, and manage your notes. Get started by creating your first desktop to organize your notes into different workspaces."
+                  : "This is your personal workspace where you can create, organize, and manage your notes. You have " + desktops.length + " desktop(s) ready for your notes."
+                }
               </p>
             </div>
           </div>
