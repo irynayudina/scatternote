@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { X, Plus, Tag, Pin } from "lucide-react"
+import { apiService } from "@/services/api"
 
 interface CreateNoteModalProps {
   isOpen: boolean
@@ -13,15 +14,6 @@ interface CreateNoteModalProps {
   onNoteCreated: () => void
 }
 
-interface UserData {
-  id: number
-  username: string
-  email: string
-  token: string
-  role: string
-  createdAt: string
-}
-
 const CreateNoteModal = ({ isOpen, onClose, desktopId, userId, onNoteCreated }: CreateNoteModalProps) => {
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
@@ -29,6 +21,7 @@ const CreateNoteModal = ({ isOpen, onClose, desktopId, userId, onNoteCreated }: 
   const [newTag, setNewTag] = useState("")
   const [isPinned, setIsPinned] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -38,17 +31,9 @@ const CreateNoteModal = ({ isOpen, onClose, desktopId, userId, onNoteCreated }: 
     }
 
     setIsLoading(true)
+    setError(null)
 
     try {
-      const userData = sessionStorage.getItem('user')
-      const token = sessionStorage.getItem('token')
-      
-      if (!userData || !token) {
-        throw new Error('User not authenticated')
-      }
-
-      const user: UserData = JSON.parse(userData)
-
       const noteData = {
         title: title.trim(),
         content: content.trim(),
@@ -57,21 +42,7 @@ const CreateNoteModal = ({ isOpen, onClose, desktopId, userId, onNoteCreated }: 
         isPinned
       }
 
-      const response = await fetch(`http://localhost:3000/note?userId=${userId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(noteData)
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to create note')
-      }
-
-      const result = await response.json()
-      console.log('Note created:', result)
+      await apiService.createNote(noteData, userId)
 
       // Reset form
       setTitle("")
@@ -85,7 +56,7 @@ const CreateNoteModal = ({ isOpen, onClose, desktopId, userId, onNoteCreated }: 
       onNoteCreated()
     } catch (error) {
       console.error('Error creating note:', error)
-      alert('Failed to create note. Please try again.')
+      setError('Failed to create note. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -138,6 +109,13 @@ const CreateNoteModal = ({ isOpen, onClose, desktopId, userId, onNoteCreated }: 
 
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Error Message */}
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+                  {error}
+                </div>
+              )}
+
               {/* Title */}
               <div className="space-y-2">
                 <Label htmlFor="title" className="text-sm font-medium text-gray-700">

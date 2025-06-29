@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { X, Monitor } from "lucide-react"
+import { apiService } from "@/services/api"
 
 interface CreateDesktopModalProps {
   isOpen: boolean
@@ -12,19 +13,11 @@ interface CreateDesktopModalProps {
   onDesktopCreated: () => void
 }
 
-interface UserData {
-  id: number
-  username: string
-  email: string
-  token: string
-  role: string
-  createdAt: string
-}
-
 const CreateDesktopModal = ({ isOpen, onClose, userId, onDesktopCreated }: CreateDesktopModalProps) => {
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -34,37 +27,15 @@ const CreateDesktopModal = ({ isOpen, onClose, userId, onDesktopCreated }: Creat
     }
 
     setIsLoading(true)
+    setError(null)
 
     try {
-      const userData = sessionStorage.getItem('user')
-      const token = sessionStorage.getItem('token')
-      
-      if (!userData || !token) {
-        throw new Error('User not authenticated')
-      }
-
-      const user: UserData = JSON.parse(userData)
-
       const desktopData = {
         name: name.trim(),
         description: description.trim() || undefined
       }
 
-      const response = await fetch(`http://localhost:3000/desktop?userId=${userId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(desktopData)
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to create desktop')
-      }
-
-      const result = await response.json()
-      console.log('Desktop created:', result)
+      await apiService.createDesktop(desktopData, userId)
 
       // Reset form
       setName("")
@@ -75,7 +46,7 @@ const CreateDesktopModal = ({ isOpen, onClose, userId, onDesktopCreated }: Creat
       onDesktopCreated()
     } catch (error) {
       console.error('Error creating desktop:', error)
-      alert('Failed to create desktop. Please try again.')
+      setError('Failed to create desktop. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -111,6 +82,13 @@ const CreateDesktopModal = ({ isOpen, onClose, userId, onDesktopCreated }: Creat
 
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Error Message */}
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+                  {error}
+                </div>
+              )}
+
               {/* Name */}
               <div className="space-y-2">
                 <Label htmlFor="name" className="text-sm font-medium text-gray-700">

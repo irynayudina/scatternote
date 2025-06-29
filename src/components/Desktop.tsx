@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Search, Filter, Grid, List } from "lucide-react"
 import CreateNoteModal from "./CreateNoteModal"
+import { apiService } from "@/services/api"
+import type { Note, Desktop } from "@/services/api"
 
 interface UserData {
   id: number
@@ -11,25 +13,6 @@ interface UserData {
   email: string
   token: string
   role: string
-  createdAt: string
-}
-
-interface Note {
-  id: number
-  title: string
-  content: string
-  createdAt: string
-  updatedAt: string
-  desktopId: number
-  tags?: string[]
-  isPinned?: boolean
-}
-
-interface Desktop {
-  id: number
-  name: string
-  description?: string
-  userId: number
   createdAt: string
 }
 
@@ -45,6 +28,7 @@ const Desktop = () => {
   const [activeDesktopId, setActiveDesktopId] = useState<number>(1)
   const [desktops, setDesktops] = useState<Desktop[]>([])
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const carouselRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -100,78 +84,33 @@ const Desktop = () => {
 
   const loadDesktops = async (userId: number) => {
     try {
-      // Mock desktops data - replace with actual API call
-      const mockDesktops: Desktop[] = [
-        { id: 1, name: "Personal", description: "Personal notes and thoughts", userId, createdAt: new Date().toISOString() },
-        { id: 2, name: "Work", description: "Work-related notes and projects", userId, createdAt: new Date().toISOString() },
-        { id: 3, name: "Study", description: "Study materials and research", userId, createdAt: new Date().toISOString() },
-        { id: 4, name: "Ideas", description: "Creative ideas and brainstorming", userId, createdAt: new Date().toISOString() },
-        { id: 5, name: "Tasks", description: "Todo lists and task management", userId, createdAt: new Date().toISOString() },
-        { id: 6, name: "Archive", description: "Archived notes and old content", userId, createdAt: new Date().toISOString() },
-        { id: 7, name: "Projects", description: "Project documentation and notes", userId, createdAt: new Date().toISOString() },
-      ]
-      setDesktops(mockDesktops)
-      setActiveDesktopId(parseInt(id || '1'))
+      setError(null)
+      const desktopsData = await apiService.getDesktops(userId)
+      setDesktops(desktopsData)
+      
+      // Set active desktop ID if not already set or if current desktop doesn't exist
+      if (!activeDesktopId || !desktopsData.find(d => d.id === activeDesktopId)) {
+        const defaultDesktopId = desktopsData.length > 0 ? desktopsData[0].id : 1
+        setActiveDesktopId(defaultDesktopId)
+      }
     } catch (error) {
       console.error('Error loading desktops:', error)
+      setError('Failed to load desktops')
     }
   }
 
   const loadDesktopData = async (userId: number, desktopId: number) => {
     try {
-      // Mock desktop data - replace with actual API call
-      const mockDesktop: Desktop = {
-        id: desktopId,
-        name: `Desktop ${desktopId}`,
-        description: `This is desktop ${desktopId} for organizing your notes`,
-        userId: userId,
-        createdAt: new Date().toISOString()
-      }
-      setDesktop(mockDesktop)
-
-      // Mock notes data - replace with actual API call
-      const mockNotes: Note[] = [
-        {
-          id: 1,
-          title: "Welcome Note",
-          content: "Welcome to your new desktop! This is where you can organize your notes.",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          desktopId: desktopId,
-          tags: ["welcome", "getting-started"],
-          isPinned: true
-        },
-        {
-          id: 2,
-          title: "Project Ideas",
-          content: "A collection of project ideas and brainstorming notes.",
-          createdAt: new Date(Date.now() - 86400000).toISOString(),
-          updatedAt: new Date(Date.now() - 86400000).toISOString(),
-          desktopId: desktopId,
-          tags: ["projects", "ideas"]
-        },
-        {
-          id: 3,
-          title: "Meeting Notes",
-          content: "Notes from today's team meeting about upcoming features.",
-          createdAt: new Date(Date.now() - 172800000).toISOString(),
-          updatedAt: new Date(Date.now() - 172800000).toISOString(),
-          desktopId: desktopId,
-          tags: ["meeting", "team"]
-        },
-        {
-          id: 4,
-          title: "Shopping List",
-          content: "Groceries and items to buy for the week.",
-          createdAt: new Date(Date.now() - 259200000).toISOString(),
-          updatedAt: new Date(Date.now() - 259200000).toISOString(),
-          desktopId: desktopId,
-          tags: ["shopping", "personal"]
-        }
-      ]
-      setNotes(mockNotes)
+      setError(null)
+      const desktopData = await apiService.getDesktop(desktopId, userId)
+      setDesktop(desktopData)
+      
+      // Load notes for this desktop
+      const notesData = await apiService.getNotes(userId, desktopId)
+      setNotes(notesData)
     } catch (error) {
       console.error('Error loading desktop data:', error)
+      setError('Failed to load desktop data')
     }
   }
 
@@ -185,14 +124,14 @@ const Desktop = () => {
     setIsCreateModalOpen(true)
   }
 
-  const handleNoteCreated = () => {
+  const handleNoteCreated = async () => {
     // Refresh notes after creation
     if (user) {
-      loadDesktopData(user.id, parseInt(id || '1'))
+      await loadDesktopData(user.id, parseInt(id || '1'))
     }
   }
 
-  const handleDesktopChange = (desktopId: number) => {
+  const handleDesktopChange = async (desktopId: number) => {
     setActiveDesktopId(desktopId)
     navigate(`/desktop/${desktopId}`)
   }
@@ -283,11 +222,35 @@ const Desktop = () => {
     setIsSwiping(false)
   }
 
-  const filteredNotes = notes.filter(note =>
-    note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    note.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    note.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-  )
+  // Handle search with API
+  const handleSearch = async (query: string) => {
+    if (!user) return
+    
+    try {
+      setError(null)
+      if (query.trim()) {
+        const searchResults = await apiService.searchNotes(user.id, query)
+        setNotes(searchResults)
+      } else {
+        // If search is empty, load notes for current desktop
+        await loadDesktopData(user.id, parseInt(id || '1'))
+      }
+    } catch (error) {
+      console.error('Error searching notes:', error)
+      setError('Failed to search notes')
+    }
+  }
+
+  // Debounced search effect
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      handleSearch(searchQuery)
+    }, 300)
+
+    return () => clearTimeout(timeoutId)
+  }, [searchQuery, user])
+
+  const filteredNotes = notes // Notes are already filtered by the API
 
   if (isLoading) {
     return (
@@ -336,6 +299,13 @@ const Desktop = () => {
           </div>
         </div>
       </header>
+
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mx-4 mt-4">
+          {error}
+        </div>
+      )}
 
       {/* Desktop Carousel */}
       <div className="bg-white/60 backdrop-blur-sm border-b border-pink-200 py-4">
@@ -493,10 +463,14 @@ const Desktop = () => {
           {/* Notes Grid/List */}
           {filteredNotes.length === 0 ? (
             <div className="text-center py-12">
-              <div className="text-gray-500 text-lg mb-4">No notes found</div>
-              <Button onClick={handleCreateNote} variant="outline" className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400">
-                Create your first note
-              </Button>
+              <div className="text-gray-500 text-lg mb-4">
+                {searchQuery ? 'No notes found matching your search' : 'No notes found'}
+              </div>
+              {!searchQuery && (
+                <Button onClick={handleCreateNote} variant="outline" className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400">
+                  Create your first note
+                </Button>
+              )}
             </div>
           ) : (
             <div className={viewMode === 'grid' 
@@ -529,12 +503,12 @@ const Desktop = () => {
                     </p>
                     {note.tags && note.tags.length > 0 && (
                       <div className="flex flex-wrap gap-1">
-                        {note.tags.map((tag, index) => (
+                        {note.tags.map((tagItem, index) => (
                           <span
                             key={index}
                             className="inline-block bg-gradient-to-r from-pink-100 to-purple-100 text-pink-700 text-xs px-2 py-1 rounded-full border border-pink-200"
                           >
-                            {tag}
+                            {tagItem.tag.name}
                           </span>
                         ))}
                       </div>
