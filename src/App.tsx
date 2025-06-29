@@ -8,6 +8,7 @@ import HomeBoard from './components/Desk';
 import { Auth0Provider } from '@auth0/auth0-react';
 import { auth0Config } from './auth/auth0-config';
 import ProtectedRoute from './components/ProtectedRoute';
+import KnowledgeBase from './components/KnowledgeBase';
 
 function App() {
   return (
@@ -40,6 +41,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Desktop />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/knowledge-base" 
+            element={
+              <ProtectedRoute>
+                <KnowledgeBase />
               </ProtectedRoute>
             } 
           />

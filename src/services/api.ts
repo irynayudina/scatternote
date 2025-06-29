@@ -47,6 +47,14 @@ export interface Auth0User {
   updated_at: string;
 }
 
+export interface Tag {
+  id: number;
+  name: string;
+  color?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ApiResponse<T> {
   message: string;
   data: T;
@@ -212,6 +220,49 @@ class ApiService {
       headers: this.getAuthHeaders(),
     });
     const result: ApiResponse<Note[]> = await this.handleResponse(response);
+    return result.data;
+  }
+
+  // Tag API calls
+  async getAllTags(): Promise<Tag[]> {
+    const response = await fetch(`${API_BASE_URL}/tag`, {
+      headers: this.getAuthHeaders(),
+    });
+    const result: ApiResponse<Tag[]> = await this.handleResponse(response);
+    return result.data;
+  }
+
+  async getPopularTags(limit: number = 10): Promise<Tag[]> {
+    const response = await fetch(`${API_BASE_URL}/tag/popular?limit=${limit}`, {
+      headers: this.getAuthHeaders(),
+    });
+    const result: ApiResponse<Tag[]> = await this.handleResponse(response);
+    return result.data;
+  }
+
+  async searchTags(query: string): Promise<Tag[]> {
+    const response = await fetch(`${API_BASE_URL}/tag/search?q=${encodeURIComponent(query)}`, {
+      headers: this.getAuthHeaders(),
+    });
+    const result: ApiResponse<Tag[]> = await this.handleResponse(response);
+    return result.data;
+  }
+
+  async getTag(tagId: number): Promise<Tag> {
+    const response = await fetch(`${API_BASE_URL}/tag/${tagId}`, {
+      headers: this.getAuthHeaders(),
+    });
+    const result: ApiResponse<Tag> = await this.handleResponse(response);
+    return result.data;
+  }
+
+  async createTag(tagData: { name: string; color?: string }): Promise<Tag> {
+    const response = await fetch(`${API_BASE_URL}/tag`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(tagData),
+    });
+    const result: ApiResponse<Tag> = await this.handleResponse(response);
     return result.data;
   }
 }

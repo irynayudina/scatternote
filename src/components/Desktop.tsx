@@ -119,12 +119,6 @@ const Desktop = () => {
     }
   }
 
-  const handleLogout = () => {
-    sessionStorage.removeItem('user')
-    sessionStorage.removeItem('token')
-    navigate('/')
-  }
-
   const handleCreateNote = () => {
     setIsCreateModalOpen(true)
   }
@@ -352,9 +346,6 @@ const Desktop = () => {
               </Button>
               <Button onClick={() => navigate('/home-board')} variant="outline" className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400">
                 Go to Home Board
-              </Button>
-              <Button onClick={handleLogout} variant="outline" className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400">
-                Logout
               </Button>
             </div>
           </div>
