@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Search, Filter, Grid, List } from "lucide-react"
 import CreateNoteModal from "./CreateNoteModal"
+import NoteViewer from "./NoteViewer"
 import { apiService } from "@/services/api"
 import type { Note, Desktop } from "@/services/api"
 
@@ -28,6 +29,8 @@ const Desktop = () => {
   const [activeDesktopId, setActiveDesktopId] = useState<number>(1)
   const [desktops, setDesktops] = useState<Desktop[]>([])
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [selectedNote, setSelectedNote] = useState<Note | null>(null)
+  const [isNoteViewerOpen, setIsNoteViewerOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const carouselRef = useRef<HTMLDivElement>(null)
 
@@ -126,6 +129,25 @@ const Desktop = () => {
 
   const handleNoteCreated = async () => {
     // Refresh notes after creation
+    if (user) {
+      await loadDesktopData(user.id, parseInt(id || '1'))
+    }
+  }
+
+  const handleNoteClick = (note: Note) => {
+    setSelectedNote(note)
+    setIsNoteViewerOpen(true)
+  }
+
+  const handleNoteUpdated = async () => {
+    // Refresh notes after update
+    if (user) {
+      await loadDesktopData(user.id, parseInt(id || '1'))
+    }
+  }
+
+  const handleNoteDeleted = async () => {
+    // Refresh notes after deletion
     if (user) {
       await loadDesktopData(user.id, parseInt(id || '1'))
     }
@@ -275,6 +297,19 @@ const Desktop = () => {
         desktopId={parseInt(id || '1')}
         userId={user?.id || 0}
         onNoteCreated={handleNoteCreated}
+      />
+
+      {/* Note Viewer Modal */}
+      <NoteViewer
+        note={selectedNote}
+        isOpen={isNoteViewerOpen}
+        onClose={() => {
+          setIsNoteViewerOpen(false)
+          setSelectedNote(null)
+        }}
+        onNoteUpdated={handleNoteUpdated}
+        onNoteDeleted={handleNoteDeleted}
+        userId={user?.id || 0}
       />
 
       {/* Header */}
@@ -483,6 +518,7 @@ const Desktop = () => {
                   className={`cursor-pointer transition-all duration-200 hover:shadow-lg bg-white/80 backdrop-blur-sm border-pink-200 hover:border-pink-300 ${
                     note.isPinned ? 'ring-2 ring-pink-500' : ''
                   }`}
+                  onClick={() => handleNoteClick(note)}
                 >
                   <CardHeader className="pb-3">
                     <div className="flex justify-between items-start">
