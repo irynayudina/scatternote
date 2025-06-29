@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { apiService } from '../services/api';
 
 interface UsernameSelectionProps {
   onComplete: (userData: any) => void;
@@ -55,45 +56,32 @@ const UsernameSelection = ({ onComplete }: UsernameSelectionProps) => {
     setError(null);
 
     try {
-      const response = await fetch('http://localhost:3000/auth/create-user-with-username', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          sub: user?.sub,
-          email: user?.email,
-          email_verified: user?.email_verified,
-          username: username.trim(),
-          name: user?.name,
-          nickname: user?.nickname,
-          picture: user?.picture,
-          updated_at: user?.updated_at
-        }),
+      const userData = await apiService.createUserWithUsername({
+        sub: user?.sub!,
+        email: user?.email!,
+        email_verified: user?.email_verified!,
+        username: username.trim(),
+        name: user?.name!,
+        nickname: user?.nickname!,
+        picture: user?.picture!,
+        updated_at: user?.updated_at!
       });
-
-      if (response.ok) {
-        const userData = await response.json();
-        // Store user data in session storage
-        sessionStorage.setItem('user', JSON.stringify(userData));
-        if (user?.sub) {
-          sessionStorage.setItem('token', user.sub);
-        }
-        
-        onComplete(userData);
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('Failed to create user with username:', errorData);
-        
-        if (errorData.message?.includes('Username is already taken')) {
-          setError('This username is already taken. Please choose another one.');
-        } else {
-          setError('Failed to create your account. Please try again.');
-        }
+      
+      // Store user data in session storage
+      sessionStorage.setItem('user', JSON.stringify(userData));
+      if (user?.sub) {
+        sessionStorage.setItem('token', user.sub);
       }
-    } catch (error) {
+      
+      onComplete(userData);
+    } catch (error: any) {
       console.error('Error creating user with username:', error);
-      setError('Network error. Please check your connection and try again.');
+      
+      if (error.message?.includes('Username is already taken')) {
+        setError('This username is already taken. Please choose another one.');
+      } else {
+        setError('Failed to create your account. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }

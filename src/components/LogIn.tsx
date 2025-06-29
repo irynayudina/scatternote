@@ -2,6 +2,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { apiService } from '../services/api';
 
 const LogIn = () => {
     const { loginWithRedirect, isAuthenticated, user, isLoading } = useAuth0();
@@ -19,33 +20,22 @@ const LogIn = () => {
         if (!user) return;
         
         try {
-            const response = await fetch(`http://localhost:3000/auth/profile`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${user.sub}` // This would need proper JWT token in production
-                },
-            });
-
-            if (response.ok) {
-                const userData = await response.json();
-                // User already exists, store data and redirect to home
-                sessionStorage.setItem('user', JSON.stringify(userData));
-                if (user.sub) {
-                    sessionStorage.setItem('token', user.sub);
-                }
-                navigate('/home-board');
-            } else if (response.status === 401) {
+            const userData = await apiService.getProfile(user.sub!);
+            // User already exists, store data and redirect to home
+            sessionStorage.setItem('user', JSON.stringify(userData));
+            if (user.sub) {
+                sessionStorage.setItem('token', user.sub);
+            }
+            navigate('/home-board');
+        } catch (error: any) {
+            console.error('Error checking existing user:', error);
+            if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
                 // User doesn't exist yet, redirect to username selection
                 navigate('/username-selection');
             } else {
                 // Some other error, redirect to username selection as fallback
                 navigate('/username-selection');
             }
-        } catch (error) {
-            console.error('Error checking existing user:', error);
-            // On error, redirect to username selection as fallback
-            navigate('/username-selection');
         }
     };
 

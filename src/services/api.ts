@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:3000'; // Update this to match your backend URL
+import { API_BASE_URL } from '../config/environment';
 
 export interface Note {
   id: number;
@@ -28,6 +28,25 @@ export interface Desktop {
   };
 }
 
+export interface User {
+  id: number;
+  username: string;
+  email: string;
+  picture?: string;
+  role: string;
+  createdAt: string;
+}
+
+export interface Auth0User {
+  sub: string;
+  email: string;
+  email_verified: boolean;
+  name: string;
+  nickname: string;
+  picture: string;
+  updated_at: string;
+}
+
 export interface ApiResponse<T> {
   message: string;
   data: T;
@@ -48,6 +67,40 @@ class ApiService {
       throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
     return response.json();
+  }
+
+  // Auth API calls
+  async createUser(auth0User: Auth0User): Promise<User> {
+    const response = await fetch(`${API_BASE_URL}/auth/create-user`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(auth0User),
+    });
+    return this.handleResponse(response);
+  }
+
+  async createUserWithUsername(auth0User: Auth0User & { username: string }): Promise<User> {
+    const response = await fetch(`${API_BASE_URL}/auth/create-user-with-username`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(auth0User),
+    });
+    return this.handleResponse(response);
+  }
+
+  async getProfile(token: string): Promise<User> {
+    const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    return this.handleResponse(response);
   }
 
   // Desktop API calls

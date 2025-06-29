@@ -4,20 +4,13 @@ import { Button } from "@/components/ui/button"
 import { useAuth0 } from '@auth0/auth0-react';
 import LogoutButton from './LogoutButton'
 import CreateDesktopModal from './CreateDesktopModal'
-
-interface UserData {
-  id: number
-  username: string
-  email: string
-  picture?: string
-  role: string
-  createdAt: string
-}
+import { apiService } from '../services/api'
+import type { User } from '../services/api'
 
 const HomeBoard = () => {
   const navigate = useNavigate()
   const { user: auth0User, isAuthenticated, isLoading: auth0Loading } = useAuth0()
-  const [user, setUser] = useState<UserData | null>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
@@ -53,32 +46,21 @@ const HomeBoard = () => {
     if (!auth0User) return;
     
     try {
-      const response = await fetch('http://localhost:3000/auth/create-user', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          sub: auth0User.sub,
-          email: auth0User.email,
-          email_verified: auth0User.email_verified,
-          name: auth0User.name,
-          nickname: auth0User.nickname,
-          picture: auth0User.picture,
-          updated_at: auth0User.updated_at
-        }),
+      const userData = await apiService.createUser({
+        sub: auth0User.sub!,
+        email: auth0User.email!,
+        email_verified: auth0User.email_verified!,
+        name: auth0User.name!,
+        nickname: auth0User.nickname!,
+        picture: auth0User.picture!,
+        updated_at: auth0User.updated_at!
       });
-
-      if (response.ok) {
-        const userData = await response.json();
-        sessionStorage.setItem('user', JSON.stringify(userData));
-        if (auth0User.sub) {
-          sessionStorage.setItem('token', auth0User.sub);
-        }
-        setUser(userData);
-      } else {
-        console.error('Failed to get user from backend');
+      
+      sessionStorage.setItem('user', JSON.stringify(userData));
+      if (auth0User.sub) {
+        sessionStorage.setItem('token', auth0User.sub);
       }
+      setUser(userData);
     } catch (error) {
       console.error('Error fetching user:', error);
     }
