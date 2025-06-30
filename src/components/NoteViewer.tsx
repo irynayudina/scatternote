@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { X, Edit, Tag, Pin, Trash2 } from "lucide-react"
 import { apiService, type Note } from "@/services/api"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 
 interface NoteViewerProps {
   note: Note | null
@@ -219,15 +221,27 @@ const NoteViewer = ({ note, isOpen, onClose, onNoteUpdated, onNoteDeleted, userI
                   Content
                 </Label>
                 {isEditing ? (
-                  <textarea
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    rows={15}
-                    className="w-full px-3 py-2 border border-pink-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none"
-                  />
+                  <div className="space-y-2">
+                    <textarea
+                      value={content}
+                      onChange={(e) => setContent(e.target.value)}
+                      rows={15}
+                      className="w-full px-3 py-2 border border-pink-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none"
+                      placeholder="Write your note content here... You can use markdown formatting like **bold**, *italic*, # headings, - lists, and more!"
+                    />
+                    <div className="text-xs text-gray-500">
+                      💡 Tip: Use markdown formatting like **bold**, *italic*, # headings, - lists, `code`, and [links](url)
+                    </div>
+                  </div>
                 ) : (
-                  <div className="bg-gray-50 p-4 rounded-md border border-gray-200 min-h-[200px] whitespace-pre-wrap text-gray-900">
-                    {note.content}
+                  <div className="bg-gray-50 p-4 rounded-md border border-gray-200 min-h-[200px] prose prose-sm max-w-none">
+                    <div className="text-gray-900">
+                      <ReactMarkdown 
+                        remarkPlugins={[remarkGfm]}
+                      >
+                        {note.content}
+                      </ReactMarkdown>
+                    </div>
                   </div>
                 )}
               </div>

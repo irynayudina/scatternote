@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -116,5 +117,79 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .prose {
+    @apply text-gray-900;
+  }
+  
+  .prose h1 {
+    @apply text-2xl font-bold text-gray-900 mb-4 mt-6;
+  }
+  
+  .prose h2 {
+    @apply text-xl font-semibold text-gray-900 mb-3 mt-5;
+  }
+  
+  .prose h3 {
+    @apply text-lg font-medium text-gray-900 mb-2 mt-4;
+  }
+  
+  .prose p {
+    @apply mb-3 leading-relaxed;
+  }
+  
+  .prose ul {
+    @apply mb-3 pl-6;
+  }
+  
+  .prose ol {
+    @apply mb-3 pl-6;
+  }
+  
+  .prose li {
+    @apply mb-1;
+  }
+  
+  .prose blockquote {
+    @apply border-l-4 border-pink-300 pl-4 italic text-gray-700 mb-3;
+  }
+  
+  .prose code {
+    @apply bg-gray-100 text-pink-600 px-1 py-0.5 rounded text-sm font-mono;
+  }
+  
+  .prose pre {
+    @apply bg-gray-100 p-3 rounded-md overflow-x-auto mb-3;
+  }
+  
+  .prose pre code {
+    @apply bg-transparent text-gray-800 p-0;
+  }
+  
+  .prose a {
+    @apply text-pink-600 hover:text-pink-700 underline;
+  }
+  
+  .prose strong {
+    @apply font-semibold text-gray-900;
+  }
+  
+  .prose em {
+    @apply italic text-gray-700;
+  }
+  
+  .prose table {
+    @apply w-full border-collapse border border-gray-300 mb-3;
+  }
+  
+  .prose th {
+    @apply border border-gray-300 px-3 py-2 bg-gray-50 font-semibold text-left;
+  }
+  
+  .prose td {
+    @apply border border-gray-300 px-3 py-2;
   }
 }
