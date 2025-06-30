@@ -1,10 +1,12 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { X, Plus, Tag, Pin } from "lucide-react"
+import { X, Plus, Tag, Pin, Edit, Eye } from "lucide-react"
 import { apiService } from "@/services/api"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 
 interface CreateNoteModalProps {
   isOpen: boolean
@@ -22,6 +24,20 @@ const CreateNoteModal = ({ isOpen, onClose, desktopId, userId, onNoteCreated }: 
   const [isPinned, setIsPinned] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [viewMode, setViewMode] = useState<'edit' | 'preview'>('edit')
+
+  // Reset form when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setTitle("")
+      setContent("")
+      setTags([])
+      setNewTag("")
+      setIsPinned(false)
+      setViewMode('edit')
+      setError(null)
+    }
+  }, [isOpen])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -137,15 +153,62 @@ const CreateNoteModal = ({ isOpen, onClose, desktopId, userId, onNoteCreated }: 
                 <Label htmlFor="content" className="text-sm font-medium text-gray-700">
                   Content *
                 </Label>
-                <textarea
-                  id="content"
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  placeholder="Write your note content here..."
-                  rows={8}
-                  className="w-full px-3 py-2 border border-pink-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none"
-                  required
-                />
+                
+                {/* Tab Navigation */}
+                <div className="flex border-b border-gray-200">
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('edit')}
+                    className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                      viewMode === 'edit'
+                        ? 'border-pink-500 text-pink-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    <Edit className="h-4 w-4 inline mr-2" />
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('preview')}
+                    className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                      viewMode === 'preview'
+                        ? 'border-pink-500 text-pink-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    <Eye className="h-4 w-4 inline mr-2" />
+                    Preview
+                  </button>
+                </div>
+
+                {/* Content Area */}
+                {viewMode === 'edit' ? (
+                  <div className="space-y-2">
+                    <textarea
+                      id="content"
+                      value={content}
+                      onChange={(e) => setContent(e.target.value)}
+                      placeholder="Write your note content here... You can use markdown formatting like **bold**, *italic*, # headings, - lists, and more!"
+                      rows={8}
+                      className="w-full px-3 py-2 border border-pink-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none"
+                      required
+                    />
+                    <div className="text-xs text-gray-500">
+                      💡 Tip: Use markdown formatting like **bold**, *italic*, # headings, - lists, `code`, and [links](url)
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 p-4 rounded-md border border-gray-200 min-h-[200px] max-h-[400px] overflow-y-auto prose prose-sm max-w-none">
+                    <div className="text-gray-900">
+                      <ReactMarkdown 
+                        remarkPlugins={[remarkGfm]}
+                      >
+                        {content || "*No content to preview*"}
+                      </ReactMarkdown>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Tags */}
