@@ -230,25 +230,54 @@ const Settings = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Desktop Background
                     </label>
-                    <select
-                      value={selectedBackground}
-                      onChange={(e) => handleBackgroundChange(e.target.value)}
-                      disabled={isSaving}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-pink-500 focus:border-transparent disabled:opacity-50"
-                    >
+                    <div className="space-y-2 max-h-64 overflow-y-auto border border-gray-300 rounded-md p-2">
                       {BACKGROUND_IMAGES.map((bg) => (
-                        <option key={bg.id} value={bg.id}>
-                          {bg.name}
-                        </option>
+                        <div
+                          key={bg.id}
+                          className={`flex items-center space-x-3 p-2 rounded-md cursor-pointer transition-all duration-200 ${
+                            selectedBackground === bg.id
+                              ? 'bg-pink-100 border-2 border-pink-300'
+                              : 'hover:bg-gray-50 border-2 border-transparent'
+                          }`}
+                          onClick={() => handleBackgroundChange(bg.id)}
+                        >
+                          <div className="flex-shrink-0 w-12 h-8 rounded overflow-hidden border border-gray-200">
+                            {bg.id === 'none' ? (
+                              <div className="w-full h-full bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100 flex items-center justify-center">
+                                <span className="text-xs text-gray-500">None</span>
+                              </div>
+                            ) : (
+                              <img
+                                src={bg.filename}
+                                alt={bg.name}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  // Fallback if image fails to load
+                                  const target = e.target as HTMLImageElement;
+                                  target.style.display = 'none';
+                                  target.parentElement!.innerHTML = '<div class="w-full h-full bg-gray-200 flex items-center justify-center"><span class="text-xs text-gray-500">Error</span></div>';
+                                }}
+                              />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-gray-900 truncate">
+                              {bg.name}
+                            </div>
+                            <div className="text-xs text-gray-500 truncate">
+                              {bg.description}
+                            </div>
+                          </div>
+                          {selectedBackground === bg.id && (
+                            <div className="flex-shrink-0">
+                              <div className="w-4 h-4 bg-pink-500 rounded-full flex items-center justify-center">
+                                <div className="w-2 h-2 bg-white rounded-full"></div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       ))}
-                    </select>
-                    {selectedBackground !== 'none' && (
-                      <div className="mt-2 p-2 bg-gray-50 rounded-md">
-                        <p className="text-xs text-gray-600">
-                          {getBackgroundImageById(selectedBackground)?.description}
-                        </p>
-                      </div>
-                    )}
+                    </div>
                     {isSaving && (
                       <p className="text-sm text-pink-600 mt-1">Saving...</p>
                     )}
