@@ -32,10 +32,7 @@ export const BackgroundProvider: React.FC<BackgroundProviderProps> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   const loadDesktopBackground = async () => {
-    console.log('loadDesktopBackground called', { auth0User, isAuthenticated, auth0Loading });
-    
     if (!auth0User || !isAuthenticated) {
-      console.log('User not authenticated, setting background to null');
       setDesktopBackground(null);
       setIsLoading(false);
       return;
@@ -44,17 +41,12 @@ export const BackgroundProvider: React.FC<BackgroundProviderProps> = ({ children
     try {
       // Get user data from session storage
       const userData = sessionStorage.getItem('user');
-      console.log('User data from session storage:', userData);
       
       if (userData) {
         const parsedUser = JSON.parse(userData);
-        console.log('Parsed user:', parsedUser);
-        
         const background = await apiService.getDesktopBackground(parsedUser.id);
-        console.log('Background from API:', background);
         setDesktopBackground(background);
       } else {
-        console.log('No user data in session storage');
         setDesktopBackground(null);
       }
     } catch (error) {
@@ -66,12 +58,10 @@ export const BackgroundProvider: React.FC<BackgroundProviderProps> = ({ children
   };
 
   const refreshBackground = async () => {
-    console.log('refreshBackground called');
     await loadDesktopBackground();
   };
 
   useEffect(() => {
-    console.log('BackgroundContext useEffect triggered', { auth0User, isAuthenticated, auth0Loading });
     if (!auth0Loading) {
       loadDesktopBackground();
     }
@@ -79,7 +69,6 @@ export const BackgroundProvider: React.FC<BackgroundProviderProps> = ({ children
 
   // Get background image URL
   const backgroundImageUrl = getBackgroundImageUrl(desktopBackground);
-  console.log('Background image URL:', backgroundImageUrl, 'from desktopBackground:', desktopBackground);
   
   // Create background style
   const backgroundStyle = backgroundImageUrl 

@@ -85,7 +85,6 @@ const Settings = () => {
   const handleBackgroundChange = async (newBackground: string) => {
     if (!user) return
 
-    console.log('handleBackgroundChange called with:', newBackground);
     setSelectedBackground(newBackground)
     setIsSaving(true)
 
@@ -93,9 +92,7 @@ const Settings = () => {
       const updatedSettings = await apiService.updateUserSettings(user.id, {
         desktopBackground: newBackground === 'none' ? undefined : newBackground
       })
-      console.log('Settings updated successfully:', updatedSettings);
       setSettings(updatedSettings)
-      console.log('Calling refreshBackground...');
       refreshBackground()
     } catch (error) {
       console.error('Error updating background:', error)
@@ -122,7 +119,7 @@ const Settings = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100">
+    <div className="min-h-screen">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm shadow-lg border-b border-pink-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

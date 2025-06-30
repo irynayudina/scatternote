@@ -365,7 +365,7 @@ const Desktop = () => {
   const rearrangedDesktops = getRearrangedDesktops();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100">
+    <div className="min-h-screen">
       {/* Create Note Modal */}
       <CreateNoteModal
         isOpen={isCreateModalOpen}
