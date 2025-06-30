@@ -85,6 +85,7 @@ const Settings = () => {
   const handleBackgroundChange = async (newBackground: string) => {
     if (!user) return
 
+    console.log('handleBackgroundChange called with:', newBackground);
     setSelectedBackground(newBackground)
     setIsSaving(true)
 
@@ -92,7 +93,9 @@ const Settings = () => {
       const updatedSettings = await apiService.updateUserSettings(user.id, {
         desktopBackground: newBackground === 'none' ? undefined : newBackground
       })
+      console.log('Settings updated successfully:', updatedSettings);
       setSettings(updatedSettings)
+      console.log('Calling refreshBackground...');
       refreshBackground()
     } catch (error) {
       console.error('Error updating background:', error)
