@@ -516,12 +516,12 @@ const Desktop = () => {
                   // Determine scale and styling based on state
                   let scale = 1
                   let bgColor = 'bg-gray-100 border-gray-300 text-gray-600'
-                  let textColor = 'text-gray-500 w-fit mx-auto bg-pink-100 p-2 rounded-md'
+                  let textColor = 'text-gray-500 w-24 bg-pink-100 p-2 rounded-md truncate'
                   
                   if (isActive) {
                     scale = 1.25
                     bgColor = 'bg-gradient-to-r from-pink-500 to-purple-500 border-pink-600 text-white'
-                    textColor = 'text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text'
+                    textColor = 'text-transparent w-16 mx-2 truncate bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text'
                   }
                   
                   return (
