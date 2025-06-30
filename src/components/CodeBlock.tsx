@@ -34,7 +34,7 @@ const CodeBlock = ({ children, className }: CodeBlockProps) => {
   }, [codeContent, language])
 
   return (
-    <pre className="bg-gray-900 p-4 rounded-md overflow-x-auto mb-3">
+    <pre className="p-4 rounded-md overflow-x-auto mb-3">
       <code
         ref={codeRef}
         className={`language-${language} text-sm`}
