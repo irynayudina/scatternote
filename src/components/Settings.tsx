@@ -221,7 +221,7 @@ const Settings = () => {
                   </CardTitle>
                   <p className="text-gray-600">See how your selected theme looks with various code examples</p>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="text-left">
                   <MarkdownTestComponent 
                     theme={selectedTheme}
                     showThemeSelector={false}
