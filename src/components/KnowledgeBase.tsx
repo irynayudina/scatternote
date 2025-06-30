@@ -307,7 +307,7 @@ const KnowledgeBase = () => {
 
         {/* Results Summary */}
         <div className="mb-6">
-          <p className="text-gray-600">
+          <p className="text-gray-600 w-fit mx-auto bg-pink-100 p-2 rounded-md">
             Found {sortedNotes.length} note{sortedNotes.length !== 1 ? 's' : ''} 
             {searchQuery && ` matching "${searchQuery}"`}
             {selectedDesktop && ` in ${desktops.find(d => d.id === selectedDesktop)?.name}`}
@@ -413,8 +413,8 @@ const KnowledgeBase = () => {
         {sortedNotes.length === 0 && (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">📚</div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No notes found</h3>
-            <p className="text-gray-600 mb-6">
+            <h3 className="text-xl font-semibold text-gray-900 mb-2 w-fit mx-auto bg-pink-100 p-2 rounded-md">No notes found</h3>
+            <p className="text-gray-600 mb-6 w-fit mx-auto bg-pink-100 p-2 rounded-md">
               {searchQuery || selectedDesktop || selectedTag 
                 ? "Try adjusting your search criteria or filters."
                 : "Create your first note to get started with your knowledge base."
