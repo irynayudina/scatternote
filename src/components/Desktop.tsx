@@ -516,7 +516,7 @@ const Desktop = () => {
                   // Determine scale and styling based on state
                   let scale = 1
                   let bgColor = 'bg-gray-100 border-gray-300 text-gray-600'
-                  let textColor = 'text-gray-500'
+                  let textColor = 'text-gray-500 w-fit mx-auto bg-pink-100 p-2 rounded-md'
                   
                   if (isActive) {
                     scale = 1.25
@@ -651,8 +651,8 @@ const Desktop = () => {
 
             {/* Notes Grid/List */}
             {filteredNotes.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="text-gray-500 text-lg mb-4">
+              <div className="text-center py-10">
+                <div className="text-gray-500 text-lg mb-4 w-fit mx-auto bg-pink-100 p-2 rounded-md">
                   {searchQuery 
                     ? 'No notes found matching your search' 
                     : (filters.dateRange.startDate || filters.dateRange.endDate || filters.selectedTags.length > 0 || filters.isPinned !== null)
