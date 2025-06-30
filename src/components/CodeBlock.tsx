@@ -20,14 +20,18 @@ interface CodeBlockProps {
 const CodeBlock = ({ children, className }: CodeBlockProps) => {
   const codeRef = useRef<HTMLElement>(null)
 
-  useEffect(() => {
-    if (codeRef.current) {
-      Prism.highlightElement(codeRef.current)
-    }
-  }, [children])
-
   // Extract language from className (format: "language-javascript")
   const language = className?.replace('language-', '') || 'text'
+  const codeContent = String(children).replace(/\n$/, '')
+
+  useEffect(() => {
+    if (codeRef.current) {
+      // Use setTimeout to ensure DOM is ready
+      setTimeout(() => {
+        Prism.highlightElement(codeRef.current!)
+      }, 0)
+    }
+  }, [codeContent, language])
 
   return (
     <pre className="bg-gray-900 p-4 rounded-md overflow-x-auto mb-3">
@@ -35,7 +39,7 @@ const CodeBlock = ({ children, className }: CodeBlockProps) => {
         ref={codeRef}
         className={`language-${language} text-sm`}
       >
-        {children}
+        {codeContent}
       </code>
     </pre>
   )

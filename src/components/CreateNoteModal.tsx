@@ -127,7 +127,7 @@ const CreateNoteModal = ({ isOpen, onClose, desktopId, userId, onNoteCreated }: 
             </div>
           </CardHeader>
 
-          <CardContent>
+          <CardContent className="text-left">
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Error Message */}
               {error && (
@@ -212,8 +212,10 @@ const CreateNoteModal = ({ isOpen, onClose, desktopId, userId, onNoteCreated }: 
                             code: ({ className, children, ...props }: any) => {
                               const match = /language-(\w+)/.exec(className || '')
                               const isInline = !match
+                              const language = match ? match[1] : 'text'
+                              
                               return !isInline ? (
-                                <CodeBlock className={className} {...props}>
+                                <CodeBlock className={`language-${language}`} {...props}>
                                   {String(children).replace(/\n$/, '')}
                                 </CodeBlock>
                               ) : (

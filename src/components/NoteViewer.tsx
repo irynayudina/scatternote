@@ -193,7 +193,7 @@ const NoteViewer = ({ note, isOpen, onClose, onNoteUpdated, onNoteDeleted, userI
             </div>
           </CardHeader>
 
-          <CardContent>
+          <CardContent className="text-left">
             {/* Error Message */}
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6">
@@ -281,8 +281,10 @@ const NoteViewer = ({ note, isOpen, onClose, onNoteUpdated, onNoteDeleted, userI
                                 code: ({ className, children, ...props }: any) => {
                                   const match = /language-(\w+)/.exec(className || '')
                                   const isInline = !match
+                                  const language = match ? match[1] : 'text'
+                                  
                                   return !isInline ? (
-                                    <CodeBlock className={className} {...props}>
+                                    <CodeBlock className={`language-${language}`} {...props}>
                                       {String(children).replace(/\n$/, '')}
                                     </CodeBlock>
                                   ) : (
@@ -310,8 +312,10 @@ const NoteViewer = ({ note, isOpen, onClose, onNoteUpdated, onNoteDeleted, userI
                             code: ({ className, children, ...props }: any) => {
                               const match = /language-(\w+)/.exec(className || '')
                               const isInline = !match
+                              const language = match ? match[1] : 'text'
+                              
                               return !isInline ? (
-                                <CodeBlock className={className} {...props}>
+                                <CodeBlock className={`language-${language}`} {...props}>
                                   {String(children).replace(/\n$/, '')}
                                 </CodeBlock>
                               ) : (
