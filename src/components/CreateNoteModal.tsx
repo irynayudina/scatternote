@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label"
 import { X, Plus, Tag, Pin, Edit, Eye } from "lucide-react"
 import { apiService } from "@/services/api"
 import remarkGfm from "remark-gfm"
+import CodeBlock from "./CodeBlock"
+import InlineCode from "./InlineCode"
 
 // Lazy load ReactMarkdown component
 const ReactMarkdown = lazy(() => import("react-markdown"))
@@ -206,6 +208,21 @@ const CreateNoteModal = ({ isOpen, onClose, desktopId, userId, onNoteCreated }: 
                       <Suspense fallback={<div className="text-gray-500">Loading preview...</div>}>
                         <ReactMarkdown 
                           remarkPlugins={[remarkGfm]}
+                          components={{
+                            code: ({ className, children, ...props }: any) => {
+                              const match = /language-(\w+)/.exec(className || '')
+                              const isInline = !match
+                              return !isInline ? (
+                                <CodeBlock className={className} {...props}>
+                                  {String(children).replace(/\n$/, '')}
+                                </CodeBlock>
+                              ) : (
+                                <InlineCode {...props}>
+                                  {children}
+                                </InlineCode>
+                              )
+                            }
+                          }}
                         >
                           {content || "*No content to preview*"}
                         </ReactMarkdown>

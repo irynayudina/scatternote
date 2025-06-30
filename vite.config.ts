@@ -27,7 +27,7 @@ export default defineConfig(({ mode }) => {
             // Separate React and React DOM into their own chunk
             'react-vendor': ['react', 'react-dom'],
             // Separate markdown libraries into their own chunk
-            'markdown-vendor': ['react-markdown', 'remark-gfm'],
+            'markdown-vendor': ['react-markdown', 'remark-gfm', 'prismjs'],
             // Separate UI libraries
             'ui-vendor': ['lucide-react', '@radix-ui/react-label', '@radix-ui/react-slot'],
             // Separate form libraries
