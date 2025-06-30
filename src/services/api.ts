@@ -41,6 +41,7 @@ export interface UserSettings {
   id: number;
   userId: number;
   preferredTheme: string;
+  desktopBackground?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -283,7 +284,7 @@ class ApiService {
     return result.data;
   }
 
-  async updateUserSettings(userId: number, settingsData: { preferredTheme?: string }): Promise<UserSettings> {
+  async updateUserSettings(userId: number, settingsData: { preferredTheme?: string; desktopBackground?: string }): Promise<UserSettings> {
     const response = await fetch(`${API_BASE_URL}/settings?userId=${userId}`, {
       method: 'PATCH',
       headers: this.getAuthHeaders(),
@@ -299,6 +300,14 @@ class ApiService {
     });
     const result: ApiResponse<{ preferredTheme: string }> = await this.handleResponse(response);
     return result.data.preferredTheme;
+  }
+
+  async getDesktopBackground(userId: number): Promise<string | null> {
+    const response = await fetch(`${API_BASE_URL}/settings/background?userId=${userId}`, {
+      headers: this.getAuthHeaders(),
+    });
+    const result: ApiResponse<{ desktopBackground: string | null }> = await this.handleResponse(response);
+    return result.data.desktopBackground;
   }
 }
 

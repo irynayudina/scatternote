@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth0 } from '@auth0/auth0-react';
-import LogoutButton from './LogoutButton'
+import { Plus, Monitor, ArrowLeft } from 'lucide-react'
 import CreateDesktopModal from './CreateDesktopModal'
+import LogoutButton from './LogoutButton'
 import { apiService } from '../services/api'
-import type { User, Desktop } from '../services/api'
+import type { Desktop, User } from '../services/api'
 
 const HomeBoard = () => {
   const navigate = useNavigate()

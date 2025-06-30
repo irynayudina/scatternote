@@ -7,6 +7,8 @@ import LogoutButton from './LogoutButton'
 import MarkdownTestComponent from './MarkdownTestComponent'
 import { apiService } from '../services/api'
 import type { User, UserSettings } from '../services/api'
+import { BACKGROUND_IMAGES, getBackgroundImageById, type BackgroundImage } from '../config/backgroundImages'
+import { useBackground } from '../contexts/BackgroundContext'
 
 const Settings = () => {
   const navigate = useNavigate()
@@ -16,6 +18,8 @@ const Settings = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [selectedTheme, setSelectedTheme] = useState('coldarkCold')
+  const [selectedBackground, setSelectedBackground] = useState<string>('none')
+  const { refreshBackground } = useBackground()
 
   useEffect(() => {
     if (auth0Loading) return;
@@ -49,10 +53,12 @@ const Settings = () => {
       const userSettings = await apiService.getUserSettings(userId)
       setSettings(userSettings)
       setSelectedTheme(userSettings.preferredTheme)
+      setSelectedBackground(userSettings.desktopBackground || 'none')
     } catch (error) {
       console.error('Error loading user settings:', error)
       // Use default theme if settings can't be loaded
       setSelectedTheme('coldarkCold')
+      setSelectedBackground('none')
     }
   }
 
@@ -71,6 +77,27 @@ const Settings = () => {
       console.error('Error updating theme:', error)
       // Revert to previous theme if update fails
       setSelectedTheme(settings?.preferredTheme || 'coldarkCold')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleBackgroundChange = async (newBackground: string) => {
+    if (!user) return
+
+    setSelectedBackground(newBackground)
+    setIsSaving(true)
+
+    try {
+      const updatedSettings = await apiService.updateUserSettings(user.id, {
+        desktopBackground: newBackground === 'none' ? undefined : newBackground
+      })
+      setSettings(updatedSettings)
+      refreshBackground()
+    } catch (error) {
+      console.error('Error updating background:', error)
+      // Revert to previous background if update fails
+      setSelectedBackground(settings?.desktopBackground || 'none')
     } finally {
       setIsSaving(false)
     }
@@ -198,11 +225,41 @@ const Settings = () => {
                     )}
                   </div>
 
+                  {/* Background Selection */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Desktop Background
+                    </label>
+                    <select
+                      value={selectedBackground}
+                      onChange={(e) => handleBackgroundChange(e.target.value)}
+                      disabled={isSaving}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-pink-500 focus:border-transparent disabled:opacity-50"
+                    >
+                      {BACKGROUND_IMAGES.map((bg) => (
+                        <option key={bg.id} value={bg.id}>
+                          {bg.name}
+                        </option>
+                      ))}
+                    </select>
+                    {selectedBackground !== 'none' && (
+                      <div className="mt-2 p-2 bg-gray-50 rounded-md">
+                        <p className="text-xs text-gray-600">
+                          {getBackgroundImageById(selectedBackground)?.description}
+                        </p>
+                      </div>
+                    )}
+                    {isSaving && (
+                      <p className="text-sm text-pink-600 mt-1">Saving...</p>
+                    )}
+                  </div>
+
                   {/* Current Settings Info */}
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <h3 className="text-sm font-medium text-gray-700 mb-2">Current Settings</h3>
                     <div className="space-y-1 text-sm text-gray-600">
                       <p><span className="font-medium">Theme:</span> {selectedTheme}</p>
+                      <p><span className="font-medium">Background:</span> {getBackgroundImageById(selectedBackground)?.name || 'Default'}</p>
                       {settings && (
                         <p><span className="font-medium">Last Updated:</span> {new Date(settings.updatedAt).toLocaleString()}</p>
                       )}
