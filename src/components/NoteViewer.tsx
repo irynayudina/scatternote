@@ -268,7 +268,7 @@ const NoteViewer = ({ note, isOpen, onClose, onNoteUpdated, onNoteDeleted, userI
                           placeholder="Write your note content here... You can use markdown formatting like **bold**, *italic*, # headings, - lists, and more!"
                         />
                         <div className="text-xs text-gray-500">
-                          💡 Tip: Use markdown formatting like **bold**, *italic*, # headings, - lists, `code`, and [links](url)
+                          💡 Tip: Use markdown formatting like **bold**, *italic*, # headings, - lists, `code`, and [links](url). For code blocks, add language at the top like ```javascript or ```typescript for syntax highlighting.
                         </div>
                       </div>
                     ) : (

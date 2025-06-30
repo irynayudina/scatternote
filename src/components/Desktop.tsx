@@ -344,6 +344,9 @@ const Desktop = () => {
               <Button onClick={() => navigate('/knowledge-base')} variant="outline" className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400">
                 Knowledge Base
               </Button>
+              <Button onClick={() => navigate('/settings')} variant="outline" className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400">
+                Settings
+              </Button>
               <Button onClick={() => navigate('/home-board')} variant="outline" className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400">
                 Go to Home Board
               </Button>

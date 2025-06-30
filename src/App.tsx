@@ -9,6 +9,7 @@ import { Auth0Provider } from '@auth0/auth0-react';
 import { auth0Config } from './auth/auth0-config';
 import ProtectedRoute from './components/ProtectedRoute';
 import KnowledgeBase from './components/KnowledgeBase';
+import Settings from './components/Settings';
 
 function App() {
   return (
@@ -49,6 +50,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <KnowledgeBase />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/settings" 
+            element={
+              <ProtectedRoute>
+                <Settings />
               </ProtectedRoute>
             } 
           />

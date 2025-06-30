@@ -193,6 +193,13 @@ const KnowledgeBase = () => {
               >
                 Back to Dashboard
               </Button>
+              <Button 
+                onClick={() => navigate('/settings')}
+                className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400"
+                variant="outline"
+              >
+                Settings
+              </Button>
               <LogoutButton />
             </div>
           </div>

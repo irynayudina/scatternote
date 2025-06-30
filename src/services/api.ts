@@ -37,6 +37,14 @@ export interface User {
   createdAt: string;
 }
 
+export interface UserSettings {
+  id: number;
+  userId: number;
+  preferredTheme: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Auth0User {
   sub: string;
   email: string;
@@ -264,6 +272,33 @@ class ApiService {
     });
     const result: ApiResponse<Tag> = await this.handleResponse(response);
     return result.data;
+  }
+
+  // Settings API calls
+  async getUserSettings(userId: number): Promise<UserSettings> {
+    const response = await fetch(`${API_BASE_URL}/settings?userId=${userId}`, {
+      headers: this.getAuthHeaders(),
+    });
+    const result: ApiResponse<UserSettings> = await this.handleResponse(response);
+    return result.data;
+  }
+
+  async updateUserSettings(userId: number, settingsData: { preferredTheme?: string }): Promise<UserSettings> {
+    const response = await fetch(`${API_BASE_URL}/settings?userId=${userId}`, {
+      method: 'PATCH',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(settingsData),
+    });
+    const result: ApiResponse<UserSettings> = await this.handleResponse(response);
+    return result.data;
+  }
+
+  async getPreferredTheme(userId: number): Promise<string> {
+    const response = await fetch(`${API_BASE_URL}/settings/theme?userId=${userId}`, {
+      headers: this.getAuthHeaders(),
+    });
+    const result: ApiResponse<{ preferredTheme: string }> = await this.handleResponse(response);
+    return result.data.preferredTheme;
   }
 }
 

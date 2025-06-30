@@ -67,54 +67,56 @@ const LogIn = () => {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-200 via-purple-200 to-pink-300 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8">
-                <div>
-                    <h2 className="mt-6 text-center text-3xl font-extrabold text-purple-600">
-                        Sign in to your account
-                    </h2>
-                    <p className="mt-2 text-center text-sm text-purple-500">
-                        Welcome back to ScatterNote
-                    </p>
-                </div>
-                
-                {error && (
-                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
-                        {error}
+        <div className="min-h-screen flex flex-col bg-gradient-to-br from-pink-200 via-purple-200 to-pink-300 py-12 px-4 sm:px-6 lg:px-8">
+            <div className="flex-1 flex items-center justify-center">
+                <div className="max-w-md w-full space-y-8">
+                    <div>
+                        <h2 className="mt-6 text-center text-3xl font-extrabold text-purple-600">
+                            Sign in to your account
+                        </h2>
+                        <p className="mt-2 text-center text-sm text-purple-500">
+                            Welcome back to ScatterNote
+                        </p>
                     </div>
-                )}
-                
-                <div className="space-y-6">
-                    <Button 
-                        onClick={handleLogin}
-                        className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-medium py-3 px-4 rounded-md shadow-lg transition-all duration-200 transform hover:scale-105"
-                    >
-                        Sign in with Auth0
-                    </Button>
                     
-                    <div className="text-center">
-                        <p className="text-sm text-purple-600">
-                            Don't have an account?{' '}
-                            <button 
-                                onClick={() => navigate('/signup')}
-                                className="font-medium text-purple-500 hover:text-purple-400 underline"
-                            >
-                                Sign up here
-                            </button>
-                        </p>
-                    </div>
-
-                    <div className="pt-4 border-t border-purple-200">
+                    {error && (
+                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+                            {error}
+                        </div>
+                    )}
+                    
+                    <div className="space-y-6">
                         <Button 
-                            onClick={handleStartOver}
-                            variant="outline"
-                            className="w-full text-purple-600 border-purple-300 hover:bg-purple-50 font-medium py-2 px-4 rounded-md transition-all duration-200"
+                            onClick={handleLogin}
+                            className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-medium py-3 px-4 rounded-md shadow-lg transition-all duration-200 transform hover:scale-105"
                         >
-                            Start Over
+                            Sign in with Auth0
                         </Button>
-                        <p className="text-xs text-purple-500 text-center mt-2">
-                            Clear all data and start fresh
-                        </p>
+                        
+                        <div className="text-center">
+                            <p className="text-sm text-purple-600">
+                                Don't have an account?{' '}
+                                <button 
+                                    onClick={() => navigate('/signup')}
+                                    className="font-medium text-purple-500 hover:text-purple-400 underline"
+                                >
+                                    Sign up here
+                                </button>
+                            </p>
+                        </div>
+
+                        <div className="pt-4 border-t border-purple-200">
+                            <Button 
+                                onClick={handleStartOver}
+                                variant="outline"
+                                className="w-full text-purple-600 border-purple-300 hover:bg-purple-50 font-medium py-2 px-4 rounded-md transition-all duration-200"
+                            >
+                                Start Over
+                            </Button>
+                            <p className="text-xs text-purple-500 text-center mt-2">
+                                Clear all data and start fresh
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>

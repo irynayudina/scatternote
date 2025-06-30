@@ -199,7 +199,7 @@ const CreateNoteModal = ({ isOpen, onClose, desktopId, userId, onNoteCreated }: 
                       required
                     />
                     <div className="text-xs text-gray-500">
-                      💡 Tip: Use markdown formatting like **bold**, *italic*, # headings, - lists, `code`, and [links](url)
+                      💡 Tip: Use markdown formatting like **bold**, *italic*, # headings, - lists, `code`, and [links](url). For code blocks, add language at the top like ```javascript or ```typescript for syntax highlighting.
                     </div>
                   </div>
                 ) : (
