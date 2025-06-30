@@ -7,7 +7,7 @@ import LogoutButton from './LogoutButton'
 import MarkdownTestComponent from './MarkdownTestComponent'
 import { apiService } from '../services/api'
 import type { User, UserSettings } from '../services/api'
-import { BACKGROUND_IMAGES, getBackgroundImageById, type BackgroundImage } from '../config/backgroundImages'
+import { BACKGROUND_IMAGES, getBackgroundImageById } from '../config/backgroundImages'
 import { useBackground } from '../contexts/BackgroundContext'
 
 const Settings = () => {

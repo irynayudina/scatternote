@@ -2,16 +2,14 @@ import { useEffect, useState, useRef } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { useAuth0 } from '@auth0/auth0-react';
-import { Plus, Search, Filter, Grid, List, Monitor, ArrowLeft, Pin } from "lucide-react"
+import { Plus, Search, Filter, Grid, List, Monitor, ArrowLeft } from "lucide-react"
 import CreateNoteModal from "./CreateNoteModal"
 import CreateDesktopModal from "./CreateDesktopModal"
 import NoteViewer from "./NoteViewer"
 import FilterModal from "./FilterModal"
 import type { FilterState } from "./FilterModal"
 import { apiService } from "@/services/api"
-import type { Note, Desktop as DesktopType, User } from "@/services/api"
+import type { Note, Desktop as DesktopType } from "@/services/api"
 
 interface UserData {
   id: number
