@@ -6,6 +6,8 @@ import { Plus, Search, Filter, Grid, List, Monitor, ArrowLeft } from "lucide-rea
 import CreateNoteModal from "./CreateNoteModal"
 import CreateDesktopModal from "./CreateDesktopModal"
 import NoteViewer from "./NoteViewer"
+import FilterModal from "./FilterModal"
+import type { FilterState } from "./FilterModal"
 import { apiService } from "@/services/api"
 import type { Note, Desktop as DesktopType } from "@/services/api"
 
@@ -35,6 +37,15 @@ const Desktop = () => {
   const [isNoteViewerOpen, setIsNoteViewerOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const carouselRef = useRef<HTMLDivElement>(null)
+  
+  // Filter state
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
+  const [filters, setFilters] = useState<FilterState>({
+    dateRange: { startDate: '', endDate: '' },
+    selectedTags: [],
+    isPinned: null
+  })
+  const [allNotes, setAllNotes] = useState<Note[]>([]) // Store all notes for client-side filtering
 
   useEffect(() => {
     // Check if user is logged in
@@ -112,6 +123,7 @@ const Desktop = () => {
       
       // Load notes for this desktop
       const notesData = await apiService.getNotes(userId, desktopId)
+      setAllNotes(notesData) // Store all notes for filtering
       setNotes(notesData)
     } catch (error) {
       console.error('Error loading desktop data:', error)
@@ -151,6 +163,13 @@ const Desktop = () => {
 
   const handleDesktopChange = async (desktopId: number) => {
     setActiveDesktopId(desktopId)
+    // Reset filters when switching desktops
+    const resetFilters: FilterState = {
+      dateRange: { startDate: '', endDate: '' },
+      selectedTags: [],
+      isPinned: null
+    }
+    setFilters(resetFilters)
     navigate(`/desktop/${desktopId}`)
   }
 
@@ -248,6 +267,7 @@ const Desktop = () => {
       setError(null)
       if (query.trim()) {
         const searchResults = await apiService.searchNotes(user.id, query)
+        setAllNotes(searchResults) // Store search results for filtering
         setNotes(searchResults)
       } else {
         // If search is empty, load notes for current desktop
@@ -259,6 +279,43 @@ const Desktop = () => {
     }
   }
 
+  // Apply filters to notes
+  const applyFilters = (filterState: FilterState) => {
+    setFilters(filterState)
+    
+    let filteredResults = [...allNotes]
+    
+    // Apply date range filter
+    if (filterState.dateRange.startDate || filterState.dateRange.endDate) {
+      filteredResults = filteredResults.filter(note => {
+        const noteDate = new Date(note.updatedAt)
+        const startDate = filterState.dateRange.startDate ? new Date(filterState.dateRange.startDate) : null
+        const endDate = filterState.dateRange.endDate ? new Date(filterState.dateRange.endDate) : null
+        
+        if (startDate && noteDate < startDate) return false
+        if (endDate && noteDate > endDate) return false
+        return true
+      })
+    }
+    
+    // Apply tag filter
+    if (filterState.selectedTags.length > 0) {
+      filteredResults = filteredResults.filter(note => {
+        if (!note.tags || note.tags.length === 0) return false
+        return filterState.selectedTags.some(selectedTag => 
+          note.tags!.some(noteTag => noteTag.tag.name === selectedTag)
+        )
+      })
+    }
+    
+    // Apply pinned filter
+    if (filterState.isPinned !== null) {
+      filteredResults = filteredResults.filter(note => note.isPinned === filterState.isPinned)
+    }
+    
+    setNotes(filteredResults)
+  }
+
   // Debounced search effect
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -267,6 +324,13 @@ const Desktop = () => {
 
     return () => clearTimeout(timeoutId)
   }, [searchQuery, user])
+
+  // Apply filters when allNotes changes (after search or desktop change)
+  useEffect(() => {
+    if (allNotes.length > 0) {
+      applyFilters(filters)
+    }
+  }, [allNotes])
 
   const filteredNotes = notes // Notes are already filtered by the API
 
@@ -330,6 +394,14 @@ const Desktop = () => {
         onClose={() => setIsCreateDesktopModalOpen(false)}
         userId={user?.id || 0}
         onDesktopCreated={handleDesktopCreated}
+      />
+
+      {/* Filter Modal */}
+      <FilterModal
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        onApplyFilters={applyFilters}
+        currentFilters={filters}
       />
 
       {/* Header */}
@@ -538,9 +610,21 @@ const Desktop = () => {
                 </div>
                 
                 {/* Filter */}
-                <Button variant="outline" size="sm" className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className={`border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400 ${
+                    (filters.dateRange.startDate || filters.dateRange.endDate || filters.selectedTags.length > 0 || filters.isPinned !== null) 
+                      ? 'bg-gradient-to-r from-pink-100 to-purple-100 border-pink-400' 
+                      : ''
+                  }`}
+                  onClick={() => setIsFilterModalOpen(true)}
+                >
                   <Filter className="h-4 w-4 mr-2" />
                   Filter
+                  {(filters.dateRange.startDate || filters.dateRange.endDate || filters.selectedTags.length > 0 || filters.isPinned !== null) && (
+                    <span className="ml-2 w-2 h-2 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full"></span>
+                  )}
                 </Button>
                 
                 {/* View Mode Toggle */}
@@ -569,11 +653,33 @@ const Desktop = () => {
             {filteredNotes.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-gray-500 text-lg mb-4">
-                  {searchQuery ? 'No notes found matching your search' : 'No notes found'}
+                  {searchQuery 
+                    ? 'No notes found matching your search' 
+                    : (filters.dateRange.startDate || filters.dateRange.endDate || filters.selectedTags.length > 0 || filters.isPinned !== null)
+                    ? 'No notes match your current filters'
+                    : 'No notes found'
+                  }
                 </div>
-                {!searchQuery && (
+                {!searchQuery && !(filters.dateRange.startDate || filters.dateRange.endDate || filters.selectedTags.length > 0 || filters.isPinned !== null) && (
                   <Button onClick={handleCreateNote} variant="outline" className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400">
                     Create your first note
+                  </Button>
+                )}
+                {(searchQuery || filters.dateRange.startDate || filters.dateRange.endDate || filters.selectedTags.length > 0 || filters.isPinned !== null) && (
+                  <Button 
+                    onClick={() => {
+                      setSearchQuery('')
+                      const resetFilters: FilterState = {
+                        dateRange: { startDate: '', endDate: '' },
+                        selectedTags: [],
+                        isPinned: null
+                      }
+                      setFilters(resetFilters)
+                    }} 
+                    variant="outline" 
+                    className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400"
+                  >
+                    Clear search and filters
                   </Button>
                 )}
               </div>

@@ -198,7 +198,7 @@ const CreateNoteModal = ({ isOpen, onClose, desktopId, userId, onNoteCreated }: 
                       className="w-full px-3 py-2 border border-pink-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none"
                       required
                     />
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-gray-500 text-center">
                       💡 Tip: Use markdown formatting like **bold**, *italic*, # headings, - lists, `code`, and [links](url). <br /> For code blocks, add language at the top like ```javascript or ```typescript for syntax highlighting.
                     </div>
                   </div>
