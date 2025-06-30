@@ -521,7 +521,7 @@ const Desktop = () => {
                   if (isActive) {
                     scale = 1.25
                     bgColor = 'bg-gradient-to-r from-pink-500 to-purple-500 border-pink-600 text-white'
-                    textColor = 'text-transparent w-16 mx-2 truncate bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text'
+                    textColor = 'text-transparent w-24 mx-2 truncate bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text'
                   }
                   
                   return (
