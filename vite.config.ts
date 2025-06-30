@@ -20,5 +20,31 @@ export default defineConfig(({ mode }) => {
       // Expose env variables to the client
       __APP_ENV__: JSON.stringify(env.APP_ENV),
     },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            // Separate React and React DOM into their own chunk
+            'react-vendor': ['react', 'react-dom'],
+            // Separate markdown libraries into their own chunk
+            'markdown-vendor': ['react-markdown', 'remark-gfm'],
+            // Separate UI libraries
+            'ui-vendor': ['lucide-react', '@radix-ui/react-label', '@radix-ui/react-slot'],
+            // Separate form libraries
+            'form-vendor': ['react-hook-form', '@hookform/resolvers', 'zod'],
+            // Separate Auth0
+            'auth-vendor': ['@auth0/auth0-react'],
+          },
+        },
+      },
+      // Increase chunk size warning limit
+      chunkSizeWarningLimit: 1000,
+      // Use default minification (esbuild)
+      minify: true,
+    },
+    optimizeDeps: {
+      include: ['react', 'react-dom'],
+      exclude: ['@tailwindcss/typography'], // Exclude unused typography plugin
+    },
   }
 })

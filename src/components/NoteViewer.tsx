@@ -1,12 +1,14 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, lazy, Suspense } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { X, Edit, Tag, Pin, Trash2, Eye } from "lucide-react"
 import { apiService, type Note } from "@/services/api"
-import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
+
+// Lazy load ReactMarkdown component
+const ReactMarkdown = lazy(() => import("react-markdown"))
 
 interface NoteViewerProps {
   note: Note | null
@@ -270,11 +272,13 @@ const NoteViewer = ({ note, isOpen, onClose, onNoteUpdated, onNoteDeleted, userI
                     ) : (
                       <div className="bg-gray-50 p-4 rounded-md border border-gray-200 min-h-[200px] max-h-[500px] overflow-y-auto prose prose-sm max-w-none">
                         <div className="text-gray-900">
-                          <ReactMarkdown 
-                            remarkPlugins={[remarkGfm]}
-                          >
-                            {content || "*No content to preview*"}
-                          </ReactMarkdown>
+                          <Suspense fallback={<div className="text-gray-500">Loading preview...</div>}>
+                            <ReactMarkdown 
+                              remarkPlugins={[remarkGfm]}
+                            >
+                              {content || "*No content to preview*"}
+                            </ReactMarkdown>
+                          </Suspense>
                         </div>
                       </div>
                     )}
@@ -282,11 +286,13 @@ const NoteViewer = ({ note, isOpen, onClose, onNoteUpdated, onNoteDeleted, userI
                 ) : (
                   <div className="bg-gray-50 p-4 rounded-md border border-gray-200 min-h-[200px] prose prose-sm max-w-none">
                     <div className="text-gray-900">
-                      <ReactMarkdown 
-                        remarkPlugins={[remarkGfm]}
-                      >
-                        {note.content}
-                      </ReactMarkdown>
+                      <Suspense fallback={<div className="text-gray-500">Loading content...</div>}>
+                        <ReactMarkdown 
+                          remarkPlugins={[remarkGfm]}
+                        >
+                          {note.content}
+                        </ReactMarkdown>
+                      </Suspense>
                     </div>
                   </div>
                 )}

@@ -1,12 +1,14 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, lazy, Suspense } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { X, Plus, Tag, Pin, Edit, Eye } from "lucide-react"
 import { apiService } from "@/services/api"
-import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
+
+// Lazy load ReactMarkdown component
+const ReactMarkdown = lazy(() => import("react-markdown"))
 
 interface CreateNoteModalProps {
   isOpen: boolean
@@ -201,11 +203,13 @@ const CreateNoteModal = ({ isOpen, onClose, desktopId, userId, onNoteCreated }: 
                 ) : (
                   <div className="bg-gray-50 p-4 rounded-md border border-gray-200 min-h-[200px] max-h-[400px] overflow-y-auto prose prose-sm max-w-none">
                     <div className="text-gray-900">
-                      <ReactMarkdown 
-                        remarkPlugins={[remarkGfm]}
-                      >
-                        {content || "*No content to preview*"}
-                      </ReactMarkdown>
+                      <Suspense fallback={<div className="text-gray-500">Loading preview...</div>}>
+                        <ReactMarkdown 
+                          remarkPlugins={[remarkGfm]}
+                        >
+                          {content || "*No content to preview*"}
+                        </ReactMarkdown>
+                      </Suspense>
                     </div>
                   </div>
                 )}
