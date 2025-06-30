@@ -81,7 +81,7 @@ export const BackgroundProvider: React.FC<BackgroundProviderProps> = ({ children
         minHeight: '100vh'
       }
     : {
-        background: 'linear-gradient(to bottom right, #fdf2f8, #faf5ff, #fdf2f8)',
+        background: 'linear-gradient(to bottom right, #fccee8, #e9d4ff, #fda5d6',
         minHeight: '100vh'
       };
 
