@@ -10,7 +10,7 @@ import 'prismjs/components/prism-css'
 import 'prismjs/components/prism-markdown'
 import 'prismjs/components/prism-bash'
 import 'prismjs/components/prism-python'
-import 'prismjs/themes/prism-tomorrow.css'
+import 'prismjs/themes/prism.css'
 
 interface CodeBlockProps {
   children: ReactNode
@@ -34,7 +34,7 @@ const CodeBlock = ({ children, className }: CodeBlockProps) => {
   }, [codeContent, language])
 
   return (
-    <pre className="p-4 rounded-md overflow-x-auto mb-3">
+    <pre className="p-4 rounded-md overflow-x-auto mb-3 border border-gray-200">
       <code
         ref={codeRef}
         className={`language-${language} text-sm`}
