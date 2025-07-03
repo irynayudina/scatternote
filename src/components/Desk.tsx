@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { useAuth0 } from '@auth0/auth0-react';
 import CreateDesktopModal from './CreateDesktopModal'
+import CreateNoteModalWithDesktop from './CreateNoteModalWithDesktop'
 import LogoutButton from './LogoutButton'
 import { apiService } from '../services/api'
 import type { Desktop, User } from '../services/api'
@@ -14,6 +15,7 @@ const HomeBoard = () => {
   const [desktops, setDesktops] = useState<Desktop[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [isCreateNoteModalOpen, setIsCreateNoteModalOpen] = useState(false)
 
   useEffect(() => {
     if (auth0Loading) return;
@@ -90,6 +92,18 @@ const HomeBoard = () => {
     console.log('Desktop created successfully')
   }
 
+  const handleCreateNote = () => {
+    setIsCreateNoteModalOpen(true)
+  }
+
+  const handleNoteCreated = async () => {
+    // Refresh desktop data after note creation
+    if (user) {
+      await loadDesktops(user.id)
+    }
+    console.log('Note created successfully')
+  }
+
   if (auth0Loading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100">
@@ -113,6 +127,15 @@ const HomeBoard = () => {
         onClose={() => setIsCreateModalOpen(false)}
         userId={user?.id || 0}
         onDesktopCreated={handleDesktopCreated}
+      />
+
+      {/* Create Note Modal */}
+      <CreateNoteModalWithDesktop
+        isOpen={isCreateNoteModalOpen}
+        onClose={() => setIsCreateNoteModalOpen(false)}
+        userId={user?.id || 0}
+        desktops={desktops}
+        onNoteCreated={handleNoteCreated}
       />
 
       {/* Header */}
@@ -192,7 +215,10 @@ const HomeBoard = () => {
                     </>
                   ) : (
                     <>
-                      <Button className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white border-0" variant="outline">
+                      <Button 
+                        onClick={handleCreateNote}
+                        className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white border-0"
+                      >
                         Create New Note
                       </Button>
                       <div className="flex space-x-2">
