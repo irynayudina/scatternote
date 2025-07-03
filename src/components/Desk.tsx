@@ -264,7 +264,7 @@ const HomeBoard = () => {
                           variant="outline"
                           onClick={handleCreateDesktop}
                         >
-                          +
+                          ➕
                         </Button>
                       </div>
                     </>

@@ -61,7 +61,7 @@ const EditDesktopsModal = ({ isOpen, onClose, desktops, onDesktopsUpdated }: Edi
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 max-h-[80vh] overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text">
@@ -82,14 +82,14 @@ const EditDesktopsModal = ({ isOpen, onClose, desktops, onDesktopsUpdated }: Edi
               {desktops.map((desktop) => (
                 <div
                   key={desktop.id}
-                  className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex items-center justify-between p-3 border border-pink-200 rounded-lg hover:bg-gradient-to-r hover:from-pink-50 hover:to-purple-50 transition-all duration-200 bg-white"
                 >
                   {editingDesktop === desktop.id ? (
                     <div className="flex items-center space-x-2 flex-1">
                       <Input
                         value={editName}
                         onChange={(e) => setEditName(e.target.value)}
-                        className="flex-1"
+                        className="flex-1 border-pink-300 focus:border-purple-500 focus:ring-purple-500"
                         placeholder="Desktop name"
                         disabled={isLoading}
                       />
@@ -97,7 +97,7 @@ const EditDesktopsModal = ({ isOpen, onClose, desktops, onDesktopsUpdated }: Edi
                         size="sm"
                         onClick={() => handleSave(desktop.id)}
                         disabled={isLoading || !editName.trim()}
-                        className="bg-green-500 hover:bg-green-600 text-white"
+                        className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white border-0"
                       >
                         Save
                       </Button>
@@ -106,6 +106,7 @@ const EditDesktopsModal = ({ isOpen, onClose, desktops, onDesktopsUpdated }: Edi
                         variant="outline"
                         onClick={handleCancel}
                         disabled={isLoading}
+                        className="border-pink-300 text-pink-600 hover:bg-pink-50"
                       >
                         Cancel
                       </Button>
@@ -121,7 +122,7 @@ const EditDesktopsModal = ({ isOpen, onClose, desktops, onDesktopsUpdated }: Edi
                           variant="outline"
                           onClick={() => handleEdit(desktop)}
                           disabled={isLoading}
-                          className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                          className="text-purple-600 border-purple-300 hover:bg-purple-50 hover:border-purple-400"
                         >
                           Edit
                         </Button>
@@ -130,7 +131,7 @@ const EditDesktopsModal = ({ isOpen, onClose, desktops, onDesktopsUpdated }: Edi
                           variant="outline"
                           onClick={() => handleDelete(desktop.id)}
                           disabled={isLoading}
-                          className="text-red-600 border-red-300 hover:bg-red-50"
+                          className="text-pink-600 border-pink-300 hover:bg-pink-50 hover:border-pink-400"
                         >
                           Delete
                         </Button>
@@ -143,11 +144,11 @@ const EditDesktopsModal = ({ isOpen, onClose, desktops, onDesktopsUpdated }: Edi
           )}
         </div>
 
-        <div className="px-6 py-4 border-t border-gray-200 flex justify-end">
+        <div className="px-6 py-4 border-t border-pink-200 flex justify-end bg-gradient-to-r from-pink-50 to-purple-50">
           <Button
             onClick={onClose}
             disabled={isLoading}
-            className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white"
+            className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white border-0 shadow-lg"
           >
             Close
           </Button>
