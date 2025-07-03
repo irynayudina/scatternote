@@ -2,14 +2,16 @@ import { useEffect, useState, useRef } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Search, Filter, Grid, List, Monitor, ArrowLeft } from "lucide-react"
+import { Plus, Search, Filter, Grid, List, Monitor, ArrowLeft, Map } from "lucide-react"
 import CreateNoteModal from "./CreateNoteModal"
 import CreateDesktopModal from "./CreateDesktopModal"
+import CreateRoadmapModal from "./CreateRoadmapModal"
 import NoteViewer from "./NoteViewer"
+import RoadmapViewer from "./RoadmapViewer"
 import FilterModal from "./FilterModal"
 import type { FilterState } from "./FilterModal"
 import { apiService } from "@/services/api"
-import type { Note, Desktop as DesktopType } from "@/services/api"
+import type { Note, Desktop as DesktopType, Roadmap } from "@/services/api"
 
 interface UserData {
   id: number
@@ -35,6 +37,10 @@ const Desktop = () => {
   const [isCreateDesktopModalOpen, setIsCreateDesktopModalOpen] = useState(false)
   const [selectedNote, setSelectedNote] = useState<Note | null>(null)
   const [isNoteViewerOpen, setIsNoteViewerOpen] = useState(false)
+  const [roadmaps, setRoadmaps] = useState<Roadmap[]>([])
+  const [selectedRoadmap, setSelectedRoadmap] = useState<Roadmap | null>(null)
+  const [isRoadmapViewerOpen, setIsRoadmapViewerOpen] = useState(false)
+  const [isCreateRoadmapModalOpen, setIsCreateRoadmapModalOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const carouselRef = useRef<HTMLDivElement>(null)
   
@@ -125,6 +131,10 @@ const Desktop = () => {
       const notesData = await apiService.getNotes(userId, desktopId)
       setAllNotes(notesData) // Store all notes for filtering
       setNotes(notesData)
+
+      // Load roadmaps for this desktop
+      const roadmapsData = await apiService.getRoadmaps(userId, desktopId)
+      setRoadmaps(roadmapsData)
     } catch (error) {
       console.error('Error loading desktop data:', error)
       setError('Failed to load desktop data')
@@ -350,6 +360,36 @@ const Desktop = () => {
     }
   }
 
+  const handleCreateRoadmap = () => {
+    setIsCreateRoadmapModalOpen(true)
+  }
+
+  const handleRoadmapCreated = async () => {
+    // Refresh roadmaps after creation
+    if (user) {
+      await loadDesktopData(user.id, parseInt(id || '1'))
+    }
+  }
+
+  const handleRoadmapClick = (roadmap: Roadmap) => {
+    setSelectedRoadmap(roadmap)
+    setIsRoadmapViewerOpen(true)
+  }
+
+  const handleRoadmapUpdated = async () => {
+    // Refresh roadmaps after update
+    if (user) {
+      await loadDesktopData(user.id, parseInt(id || '1'))
+    }
+  }
+
+  const handleRoadmapDeleted = async () => {
+    // Refresh roadmaps after deletion
+    if (user) {
+      await loadDesktopData(user.id, parseInt(id || '1'))
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -394,6 +434,28 @@ const Desktop = () => {
         onClose={() => setIsCreateDesktopModalOpen(false)}
         userId={user?.id || 0}
         onDesktopCreated={handleDesktopCreated}
+      />
+
+      {/* Create Roadmap Modal */}
+      <CreateRoadmapModal
+        isOpen={isCreateRoadmapModalOpen}
+        onClose={() => setIsCreateRoadmapModalOpen(false)}
+        desktopId={parseInt(id || '1')}
+        userId={user?.id || 0}
+        onRoadmapCreated={handleRoadmapCreated}
+      />
+
+      {/* Roadmap Viewer Modal */}
+      <RoadmapViewer
+        roadmap={selectedRoadmap}
+        isOpen={isRoadmapViewerOpen}
+        onClose={() => {
+          setIsRoadmapViewerOpen(false)
+          setSelectedRoadmap(null)
+        }}
+        onRoadmapUpdated={handleRoadmapUpdated}
+        onRoadmapDeleted={handleRoadmapDeleted}
+        userId={user?.id || 0}
       />
 
       {/* Filter Modal */}
@@ -594,6 +656,10 @@ const Desktop = () => {
                   <Plus className="h-4 w-4" />
                   <span>Create Note</span>
                 </Button>
+                <Button onClick={handleCreateRoadmap} className="flex items-center space-x-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0">
+                  <Map className="h-4 w-4" />
+                  <span>Create Roadmap</span>
+                </Button>
               </div>
               
               <div className="flex items-center space-x-4">
@@ -647,6 +713,70 @@ const Desktop = () => {
                   </Button>
                 </div>
               </div>
+            </div>
+
+            {/* Roadmaps Section */}
+            {roadmaps.length > 0 && (
+              <div className="mb-8">
+                <h3 className="text-xl font-semibold text-transparent bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text mb-4">
+                  Roadmaps
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {roadmaps.map((roadmap) => {
+                    const completedSteps = roadmap.steps.filter(step => step.isCompleted).length
+                    const totalSteps = roadmap.steps.length
+                    const progressPercentage = totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0
+
+                    return (
+                      <Card 
+                        key={roadmap.id} 
+                        className="cursor-pointer transition-all duration-200 hover:shadow-lg bg-white/80 backdrop-blur-sm border-purple-200 hover:border-purple-300"
+                        onClick={() => handleRoadmapClick(roadmap)}
+                      >
+                        <CardHeader className="pb-3">
+                          <div className="flex justify-between items-start">
+                            <CardTitle className="text-lg font-semibold line-clamp-2 text-transparent bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text">
+                              {roadmap.title}
+                            </CardTitle>
+                            <Map className="h-5 w-5 text-purple-500" />
+                          </div>
+                          {roadmap.description && (
+                            <CardDescription className="text-sm text-gray-500 line-clamp-2">
+                              {roadmap.description}
+                            </CardDescription>
+                          )}
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-3">
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-gray-600">Progress</span>
+                              <span className="text-purple-600 font-medium">
+                                {completedSteps}/{totalSteps} steps
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-300"
+                                style={{ width: `${progressPercentage}%` }}
+                              />
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {Math.round(progressPercentage)}% complete
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Notes Section */}
+            <div className="mb-6">
+              <h3 className="text-xl font-semibold text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text mb-4">
+                Notes
+              </h3>
             </div>
 
             {/* Notes Grid/List */}

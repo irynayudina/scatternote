@@ -64,6 +64,28 @@ export interface Tag {
   updatedAt: string;
 }
 
+export interface RoadmapStep {
+  id: number;
+  title: string;
+  description?: string;
+  order: number;
+  isCompleted: boolean;
+  roadmapId: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Roadmap {
+  id: number;
+  title: string;
+  description?: string;
+  desktopId: number;
+  userId: number;
+  createdAt: string;
+  updatedAt: string;
+  steps: RoadmapStep[];
+}
+
 export interface ApiResponse<T> {
   message: string;
   data: T;
@@ -308,6 +330,106 @@ class ApiService {
     });
     const result: ApiResponse<{ desktopBackground: string | null }> = await this.handleResponse(response);
     return result.data.desktopBackground;
+  }
+
+  // Roadmap API calls
+  async getRoadmaps(userId: number, desktopId?: number): Promise<Roadmap[]> {
+    let url = `${API_BASE_URL}/roadmap?userId=${userId}`;
+    if (desktopId) url += `&desktopId=${desktopId}`;
+
+    const response = await fetch(url, {
+      headers: this.getAuthHeaders(),
+    });
+    const result: ApiResponse<Roadmap[]> = await this.handleResponse(response);
+    return result.data;
+  }
+
+  async getRoadmap(roadmapId: number, userId: number): Promise<Roadmap> {
+    const response = await fetch(`${API_BASE_URL}/roadmap/${roadmapId}?userId=${userId}`, {
+      headers: this.getAuthHeaders(),
+    });
+    const result: ApiResponse<Roadmap> = await this.handleResponse(response);
+    return result.data;
+  }
+
+  async createRoadmap(roadmapData: {
+    title: string;
+    description?: string;
+    steps: Array<{
+      title: string;
+      description?: string;
+      order: number;
+      isCompleted?: boolean;
+    }>;
+  }, userId: number, desktopId: number): Promise<Roadmap> {
+    const response = await fetch(`${API_BASE_URL}/roadmap?userId=${userId}&desktopId=${desktopId}`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(roadmapData),
+    });
+    const result: ApiResponse<Roadmap> = await this.handleResponse(response);
+    return result.data;
+  }
+
+  async updateRoadmap(roadmapId: number, roadmapData: Partial<{
+    title: string;
+    description: string;
+    steps: Array<{
+      title: string;
+      description?: string;
+      order: number;
+      isCompleted?: boolean;
+    }>;
+  }>, userId: number): Promise<Roadmap> {
+    const response = await fetch(`${API_BASE_URL}/roadmap/${roadmapId}?userId=${userId}`, {
+      method: 'PATCH',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(roadmapData),
+    });
+    const result: ApiResponse<Roadmap> = await this.handleResponse(response);
+    return result.data;
+  }
+
+  async deleteRoadmap(roadmapId: number, userId: number): Promise<{ message: string }> {
+    const response = await fetch(`${API_BASE_URL}/roadmap/${roadmapId}?userId=${userId}`, {
+      method: 'DELETE',
+      headers: this.getAuthHeaders(),
+    });
+    return this.handleResponse(response);
+  }
+
+  async updateRoadmapStep(stepId: number, stepData: Partial<{
+    title: string;
+    description: string;
+    order: number;
+    isCompleted: boolean;
+  }>, userId: number): Promise<Roadmap> {
+    const response = await fetch(`${API_BASE_URL}/roadmap/step/${stepId}?userId=${userId}`, {
+      method: 'PATCH',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(stepData),
+    });
+    const result: ApiResponse<Roadmap> = await this.handleResponse(response);
+    return result.data;
+  }
+
+  async toggleStepCompletion(stepId: number, userId: number): Promise<Roadmap> {
+    const response = await fetch(`${API_BASE_URL}/roadmap/step/${stepId}/toggle?userId=${userId}`, {
+      method: 'PATCH',
+      headers: this.getAuthHeaders(),
+    });
+    const result: ApiResponse<Roadmap> = await this.handleResponse(response);
+    return result.data;
+  }
+
+  async reorderSteps(roadmapId: number, stepIds: number[], userId: number): Promise<Roadmap> {
+    const response = await fetch(`${API_BASE_URL}/roadmap/${roadmapId}/reorder?userId=${userId}`, {
+      method: 'PATCH',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ stepIds }),
+    });
+    const result: ApiResponse<Roadmap> = await this.handleResponse(response);
+    return result.data;
   }
 }
 
