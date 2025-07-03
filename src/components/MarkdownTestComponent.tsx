@@ -96,34 +96,7 @@ const user = "World";
 const result = greet(user);
 \`\`\`
 
-And here's a TypeScript React component:
-
-\`\`\`jsx
-interface UserProps {
-  name: string;
-  age: number;
-  isActive?: boolean;
-}
-
-const UserCard: React.FC<UserProps> = ({ name, age, isActive = true }) => {
-  const handleClick = () => {
-    console.log(\`Clicked on \${name}\`);
-  };
-
-  return (
-    <div className="user-card" onClick={handleClick}>
-      <h3>{name}</h3>
-      <p>Age: {age}</p>
-      <span className={isActive ? 'active' : 'inactive'}>
-        {isActive ? 'Active' : 'Inactive'}
-      </span>
-    </div>
-  );
-};
-\`\`\`
-
-react js
-
+And here's a TypeScript React component (tsx):
 
 \`\`\`tsx
 interface UserProps {
