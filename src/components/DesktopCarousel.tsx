@@ -1,5 +1,4 @@
 import { useRef, useState } from "react"
-import { Monitor } from "lucide-react"
 import type { Desktop as DesktopType } from "@/services/api"
 
 interface DesktopCarouselProps {
