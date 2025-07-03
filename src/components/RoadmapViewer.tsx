@@ -3,9 +3,10 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { CheckCircle, Circle, Edit3, Save, X, Trash2, ArrowUp, ArrowDown } from 'lucide-react'
+import { Edit3, Save, X, Trash2, ArrowUp, ArrowDown } from 'lucide-react'
 import { apiService } from '@/services/api'
 import type { Roadmap, RoadmapStep } from '@/services/api'
+import RoadmapStepComponent from './RoadmapStep'
 
 interface RoadmapViewerProps {
   roadmap: Roadmap | null
@@ -45,20 +46,6 @@ const RoadmapViewer = ({
   const completedSteps = roadmap.steps.filter(step => step.isCompleted).length
   const totalSteps = roadmap.steps.length
   const progressPercentage = totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0
-
-  const handleToggleStep = async (stepId: number) => {
-    try {
-      setIsLoading(true)
-      setError(null)
-      await apiService.toggleStepCompletion(stepId, userId)
-      onRoadmapUpdated()
-    } catch (error) {
-      console.error('Error toggling step:', error)
-      setError('Failed to update step. Please try again.')
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   const handleSaveEdit = async () => {
     if (!editedTitle.trim()) {
@@ -314,61 +301,13 @@ const RoadmapViewer = ({
             ) : (
               <div className="space-y-3">
                 {roadmap.steps.map((step) => (
-                  <Card 
-                    key={step.id} 
-                    className={`border transition-all duration-200 ${
-                      step.isCompleted 
-                        ? 'border-green-200 bg-green-50/50' 
-                        : 'border-pink-200 bg-pink-50/50'
-                    }`}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-start space-x-3">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleToggleStep(step.id)}
-                          disabled={isLoading}
-                          className={`h-8 w-8 p-0 ${
-                            step.isCompleted 
-                              ? 'text-green-600 hover:text-green-700 hover:bg-green-100' 
-                              : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
-                          }`}
-                        >
-                          {step.isCompleted ? (
-                            <CheckCircle className="h-5 w-5" />
-                          ) : (
-                            <Circle className="h-5 w-5" />
-                          )}
-                        </Button>
-                        
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <span className="text-sm font-medium text-gray-600">Step {step.order}</span>
-                            {step.isCompleted && (
-                              <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded-full">
-                                COMPLETED
-                              </span>
-                            )}
-                          </div>
-                          
-                          <h4 className={`font-medium ${
-                            step.isCompleted ? 'text-green-800 line-through' : 'text-gray-800'
-                          }`}>
-                            {step.title}
-                          </h4>
-                          
-                          {step.description && (
-                            <p className={`text-sm mt-1 ${
-                              step.isCompleted ? 'text-green-600' : 'text-gray-600'
-                            }`}>
-                              {step.description}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <RoadmapStepComponent
+                    key={step.id}
+                    step={step}
+                    userId={userId}
+                    onStepUpdated={onRoadmapUpdated}
+                    isLoading={isLoading}
+                  />
                 ))}
               </div>
             )}
