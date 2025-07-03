@@ -134,7 +134,6 @@ const Desktop = () => {
 
       // Load roadmaps for this desktop
       const roadmapsData = await apiService.getRoadmaps(userId, desktopId)
-      console.log(roadmapsData);
       setRoadmaps(roadmapsData)
     } catch (error) {
       console.error('Error loading desktop data:', error)
