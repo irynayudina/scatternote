@@ -89,7 +89,7 @@ const NotesSection = ({
               onDragEnd={onDragEnd}
             >
               <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
+                <div className="flex justify-between items-start gap-1">
                   <div className="flex items-center space-x-2 flex-1">
                     {isDragModeEnabled && (
                       <GripVertical className="h-4 w-4 text-gray-400 cursor-grab active:cursor-grabbing" />
