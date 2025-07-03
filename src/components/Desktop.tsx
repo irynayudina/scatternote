@@ -823,7 +823,7 @@ const Desktop = () => {
                         className={`cursor-pointer transition-all duration-200 hover:shadow-lg bg-white/80 backdrop-blur-sm border-purple-200 hover:border-purple-300 ${
                           isDragging && draggedItem?.id === roadmap.id ? 'opacity-50' : ''
                         } ${
-                          isDragModeEnabled ? 'hover:ring-2 hover:ring-purple-300 hover:ring-opacity-30' : ''
+                          isDragModeEnabled ? 'hover:ring-2 hover:ring-purple-400' : ''
                         }`}
                         onClick={() => handleRoadmapClick(roadmap)}
                         draggable={isDragModeEnabled}
@@ -926,7 +926,7 @@ const Desktop = () => {
                     className={`cursor-pointer transition-all duration-200 hover:shadow-lg bg-white/80 backdrop-blur-sm border-pink-200 hover:border-pink-300 ${
                       note.isPinned ? 'ring-2 ring-pink-500' : ''
                     } ${isDragging && draggedItem?.id === note.id ? 'opacity-50' : ''} ${
-                      isDragModeEnabled ? 'hover:ring-2 hover:ring-pink-300 hover:ring-opacity-30' : ''
+                      isDragModeEnabled ? 'hover:ring-2 hover:ring-pink-400' : ''
                     }`}
                     onClick={() => handleNoteClick(note)}
                     draggable={isDragModeEnabled}
