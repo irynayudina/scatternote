@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef, useCallback } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import CreateNoteModal from "./CreateNoteModal"
@@ -7,7 +7,7 @@ import CreateRoadmapModal from "./CreateRoadmapModal"
 import NoteViewer from "./NoteViewer"
 import RoadmapViewer from "./RoadmapViewer"
 import FilterModal from "./FilterModal"
-import DesktopCarousel from "./DesktopCarousel"
+import DesktopCarouselItem from "./DesktopCarouselItem"
 import RoadmapsSection from "./RoadmapsSection"
 import NotesSection from "./NotesSection"
 import DesktopToolbar from "./DesktopToolbar"
@@ -60,6 +60,12 @@ const Desktop = () => {
   const [isDragging, setIsDragging] = useState(false)
   const [dragOverDesktop, setDragOverDesktop] = useState<number | null>(null)
   const [isDragModeEnabled, setIsDragModeEnabled] = useState(false)
+
+  // Carousel state
+  const carouselRef = useRef<HTMLDivElement>(null)
+  const [touchStartX, setTouchStartX] = useState(0)
+  const [touchStartY, setTouchStartY] = useState(0)
+  const [isSwiping, setIsSwiping] = useState(false)
 
   useEffect(() => {
     // Check if user is logged in
@@ -347,6 +353,125 @@ const Desktop = () => {
     }
   }
 
+  // Carousel logic
+  const getRearrangedDesktops = useCallback(() => {
+    if (desktops.length === 0) return []
+    
+    const activeIndex = desktops.findIndex(d => d.id === activeDesktopId)
+    if (activeIndex === -1) return desktops
+    
+    const middleIndex = Math.floor(desktops.length / 2)
+    const shift = middleIndex - activeIndex
+    
+    const rearranged = [...desktops]
+    if (shift > 0) {
+      // Move active element forward
+      for (let i = 0; i < shift; i++) {
+        const last = rearranged.pop()!
+        rearranged.unshift(last)
+      }
+    } else if (shift < 0) {
+      // Move active element backward
+      for (let i = 0; i < Math.abs(shift); i++) {
+        const first = rearranged.shift()!
+        rearranged.push(first)
+      }
+    }
+    
+    return rearranged
+  }, [desktops, activeDesktopId])
+
+  const goToNextDesktop = useCallback(() => {
+    const currentIndex = desktops.findIndex(d => d.id === activeDesktopId)
+    const nextIndex = (currentIndex + 1) % desktops.length
+    const nextDesktop = desktops[nextIndex]
+    if (nextDesktop) {
+      handleDesktopChange(nextDesktop.id)
+    }
+  }, [desktops, activeDesktopId, handleDesktopChange])
+
+  const goToPreviousDesktop = useCallback(() => {
+    const currentIndex = desktops.findIndex(d => d.id === activeDesktopId)
+    const prevIndex = currentIndex === 0 ? desktops.length - 1 : currentIndex - 1
+    const prevDesktop = desktops[prevIndex]
+    if (prevDesktop) {
+      handleDesktopChange(prevDesktop.id)
+    }
+  }, [desktops, activeDesktopId, handleDesktopChange])
+
+  // Touch handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX)
+    setTouchStartY(e.touches[0].clientY)
+    setIsSwiping(false)
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStartX || !touchStartY) return
+
+    const touchCurrentX = e.touches[0].clientX
+    const touchCurrentY = e.touches[0].clientY
+    
+    const deltaX = touchStartX - touchCurrentX
+    const deltaY = touchStartY - touchCurrentY
+    
+    // Determine if this is a horizontal swipe
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+      setIsSwiping(true)
+      e.preventDefault() // Prevent default scrolling during horizontal swipe
+    }
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStartX || !touchStartY || !isSwiping) return
+
+    const touchEndX = e.changedTouches[0].clientX
+    const deltaX = touchStartX - touchEndX
+    const minSwipeDistance = 50 // Minimum distance for a swipe
+
+    if (Math.abs(deltaX) > minSwipeDistance) {
+      if (deltaX > 0) {
+        // Swiped left - go to next
+        goToNextDesktop()
+      } else {
+        // Swiped right - go to previous
+        goToPreviousDesktop()
+      }
+    }
+
+    // Reset touch state
+    setTouchStartX(0)
+    setTouchStartY(0)
+    setIsSwiping(false)
+  }
+
+  // Set up wheel event listener for carousel
+  useEffect(() => {
+    const carouselElement = carouselRef.current
+    if (!carouselElement) return
+
+    const wheelHandler = (e: WheelEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+      
+      const threshold = 50
+      if (Math.abs(e.deltaX) > threshold || Math.abs(e.deltaY) > threshold) {
+        if (e.deltaX > 0 || e.deltaY > 0) {
+          goToNextDesktop()
+        } else {
+          goToPreviousDesktop()
+        }
+      }
+    }
+
+    // Use passive: false to ensure preventDefault works
+    carouselElement.addEventListener('wheel', wheelHandler, { passive: false })
+    
+    return () => {
+      carouselElement.removeEventListener('wheel', wheelHandler)
+    }
+  }, [goToNextDesktop, goToPreviousDesktop])
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -467,16 +592,51 @@ const Desktop = () => {
 
       {/* Desktop Carousel - Only show if there are desktops */}
       {desktops.length > 0 && (
-        <DesktopCarousel
-          desktops={desktops}
-          activeDesktopId={activeDesktopId}
-          onDesktopChange={handleDesktopChange}
-          isDragModeEnabled={isDragModeEnabled}
-          dragOverDesktop={dragOverDesktop}
-          onDragOver={handleDragOver}
-                      onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        />
+        <div className="bg-white/60 backdrop-blur-sm border-b border-pink-200 pt-4 pb-6">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div 
+              ref={carouselRef}
+              className="relative overflow-visible"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              style={{ 
+                userSelect: 'none',
+                WebkitUserSelect: 'none',
+                MozUserSelect: 'none',
+                msUserSelect: 'none',
+                height: '120px',
+                zIndex: 10,
+                overscrollBehavior: 'none',
+                touchAction: 'pan-y pinch-zoom'
+              }}
+            >
+              <div 
+                className="flex justify-center items-center space-x-8 py-4 transition-all duration-300 ease-out"
+                style={{ 
+                  userSelect: 'none',
+                  WebkitUserSelect: 'none',
+                  MozUserSelect: 'none',
+                  msUserSelect: 'none'
+                }}
+              >
+                {getRearrangedDesktops().map((desktopItem) => (
+                  <DesktopCarouselItem
+                    key={desktopItem.id}
+                    desktop={desktopItem}
+                    isActive={desktopItem.id === activeDesktopId}
+                    isDragModeEnabled={isDragModeEnabled}
+                    isDragOver={dragOverDesktop === desktopItem.id}
+                    onClick={() => handleDesktopChange(desktopItem.id)}
+                    onDragOver={(e) => handleDragOver(e, desktopItem.id)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, desktopItem.id)}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Main Content - Only show if there are desktops */}
