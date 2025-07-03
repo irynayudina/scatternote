@@ -89,7 +89,7 @@ const NotesSection = ({
               onDragEnd={onDragEnd}
             >
               <CardHeader className="pb-3">
-                <div className="flex justify-between items-start gap-1">
+                <div className="flex justify-between items-start relative">
                   <div className="flex items-center space-x-2 flex-1">
                     {isDragModeEnabled && (
                       <GripVertical className="h-4 w-4 text-gray-400 cursor-grab active:cursor-grabbing" />
@@ -99,7 +99,7 @@ const NotesSection = ({
                     </CardTitle>
                   </div>
                   {note.isPinned && (
-                    <div className="text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-xs font-medium">PINNED</div>
+                    <div className="absolute right-4 top-2 text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-xs font-medium">PINNED</div>
                   )}
                 </div>
                 <CardDescription className="text-sm text-gray-500">
