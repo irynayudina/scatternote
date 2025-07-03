@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Search, Filter, Grid, List, Monitor, ArrowLeft, Map } from "lucide-react"
+import { Plus, Search, Filter, Grid, List, Monitor, ArrowLeft, Map, GripVertical } from "lucide-react"
 import CreateNoteModal from "./CreateNoteModal"
 import CreateDesktopModal from "./CreateDesktopModal"
 import CreateRoadmapModal from "./CreateRoadmapModal"
@@ -52,6 +52,11 @@ const Desktop = () => {
     isPinned: null
   })
   const [allNotes, setAllNotes] = useState<Note[]>([]) // Store all notes for client-side filtering
+
+  // Drag and drop state
+  const [draggedItem, setDraggedItem] = useState<{ type: 'note' | 'roadmap', id: number, title: string } | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragOverDesktop, setDragOverDesktop] = useState<number | null>(null)
 
   useEffect(() => {
     // Check if user is logged in
@@ -390,6 +395,61 @@ const Desktop = () => {
     }
   }
 
+  // Drag and drop handlers
+  const handleDragStart = (e: React.DragEvent, item: { type: 'note' | 'roadmap', id: number, title: string }) => {
+    setDraggedItem(item)
+    setIsDragging(true)
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', JSON.stringify(item))
+  }
+
+  const handleDragEnd = () => {
+    setDraggedItem(null)
+    setIsDragging(false)
+    setDragOverDesktop(null)
+  }
+
+  const handleDragOver = (e: React.DragEvent, desktopId: number) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    setDragOverDesktop(desktopId)
+  }
+
+  const handleDragLeave = () => {
+    setDragOverDesktop(null)
+  }
+
+  const handleDrop = async (e: React.DragEvent, targetDesktopId: number) => {
+    e.preventDefault()
+    
+    if (!draggedItem || !user) return
+
+    try {
+      setError(null)
+      
+      if (draggedItem.type === 'note') {
+        await apiService.transferNote(draggedItem.id, targetDesktopId, user.id)
+      } else if (draggedItem.type === 'roadmap') {
+        await apiService.transferRoadmap(draggedItem.id, targetDesktopId, user.id)
+      }
+
+      // Refresh data after transfer
+      await loadDesktopData(user.id, parseInt(id || '1'))
+      
+      // Show success message
+      setError('✅ Item transferred successfully!')
+      setTimeout(() => setError(null), 3000)
+      
+    } catch (error) {
+      console.error('Error transferring item:', error)
+      setError('Failed to transfer item. Please try again.')
+    } finally {
+      setDraggedItem(null)
+      setIsDragging(false)
+      setDragOverDesktop(null)
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -489,9 +549,13 @@ const Desktop = () => {
         </div>
       </header>
 
-      {/* Error Message */}
+      {/* Error/Success Message */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mx-4 mt-4">
+        <div className={`px-4 py-3 rounded-md mx-4 mt-4 ${
+          error.includes('✅') 
+            ? 'bg-green-50 border border-green-200 text-green-700' 
+            : 'bg-red-50 border border-red-200 text-red-700'
+        }`}>
           {error}
         </div>
       )}
@@ -591,8 +655,11 @@ const Desktop = () => {
                       key={desktopItem.id}
                       className={`flex flex-col items-center transition-all duration-300 cursor-pointer ${
                         isActive ? 'scale-125' : 'scale-100 opacity-60 hover:opacity-80'
-                      }`}
+                      } ${dragOverDesktop === desktopItem.id ? 'ring-4 ring-pink-400 ring-opacity-50' : ''}`}
                       onClick={() => handleDesktopChange(desktopItem.id)}
+                      onDragOver={(e) => handleDragOver(e, desktopItem.id)}
+                      onDragLeave={handleDragLeave}
+                      onDrop={(e) => handleDrop(e, desktopItem.id)}
                       style={{
                         transform: `scale(${scale})`,
                         opacity: isActive ? 1 : 0.6,
@@ -660,6 +727,10 @@ const Desktop = () => {
                   <Map className="h-4 w-4" />
                   <span>Create Roadmap</span>
                 </Button>
+                <div className="text-xs text-gray-500 flex items-center space-x-1">
+                  <GripVertical className="h-3 w-3" />
+                  <span>Drag items to transfer between desktops</span>
+                </div>
               </div>
               
               <div className="flex items-center space-x-4">
@@ -730,14 +801,22 @@ const Desktop = () => {
                     return (
                       <Card 
                         key={roadmap.id} 
-                        className="cursor-pointer transition-all duration-200 hover:shadow-lg bg-white/80 backdrop-blur-sm border-purple-200 hover:border-purple-300"
+                        className={`cursor-pointer transition-all duration-200 hover:shadow-lg bg-white/80 backdrop-blur-sm border-purple-200 hover:border-purple-300 ${
+                          isDragging && draggedItem?.id === roadmap.id ? 'opacity-50' : ''
+                        }`}
                         onClick={() => handleRoadmapClick(roadmap)}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, { type: 'roadmap', id: roadmap.id, title: roadmap.title })}
+                        onDragEnd={handleDragEnd}
                       >
                         <CardHeader className="pb-3">
                           <div className="flex justify-between items-start">
-                            <CardTitle className="text-lg font-semibold line-clamp-2 text-transparent bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text">
-                              {roadmap.title}
-                            </CardTitle>
+                            <div className="flex items-center space-x-2 flex-1">
+                              <GripVertical className="h-4 w-4 text-gray-400 cursor-grab active:cursor-grabbing" />
+                              <CardTitle className="text-lg font-semibold line-clamp-2 text-transparent bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text">
+                                {roadmap.title}
+                              </CardTitle>
+                            </div>
                             <Map className="h-5 w-5 text-purple-500" />
                           </div>
                           {roadmap.description && (
@@ -823,14 +902,20 @@ const Desktop = () => {
                     key={note.id} 
                     className={`cursor-pointer transition-all duration-200 hover:shadow-lg bg-white/80 backdrop-blur-sm border-pink-200 hover:border-pink-300 ${
                       note.isPinned ? 'ring-2 ring-pink-500' : ''
-                    }`}
+                    } ${isDragging && draggedItem?.id === note.id ? 'opacity-50' : ''}`}
                     onClick={() => handleNoteClick(note)}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, { type: 'note', id: note.id, title: note.title })}
+                    onDragEnd={handleDragEnd}
                   >
                     <CardHeader className="pb-3">
                       <div className="flex justify-between items-start">
-                        <CardTitle className="text-lg font-semibold line-clamp-2 text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text">
-                          {note.title}
-                        </CardTitle>
+                        <div className="flex items-center space-x-2 flex-1">
+                          <GripVertical className="h-4 w-4 text-gray-400 cursor-grab active:cursor-grabbing" />
+                          <CardTitle className="text-lg font-semibold line-clamp-2 text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text">
+                            {note.title}
+                          </CardTitle>
+                        </div>
                         {note.isPinned && (
                           <div className="text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-xs font-medium">PINNED</div>
                         )}

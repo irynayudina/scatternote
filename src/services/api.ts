@@ -256,6 +256,16 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  async transferNote(noteId: number, targetDesktopId: number, userId: number): Promise<Note> {
+    const response = await fetch(`${API_BASE_URL}/note/${noteId}/transfer?userId=${userId}`, {
+      method: 'PATCH',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ targetDesktopId }),
+    });
+    const result: ApiResponse<Note> = await this.handleResponse(response);
+    return result.data;
+  }
+
   async searchNotes(userId: number, query: string): Promise<Note[]> {
     const response = await fetch(`${API_BASE_URL}/note/search?userId=${userId}&q=${encodeURIComponent(query)}`, {
       headers: this.getAuthHeaders(),
@@ -414,6 +424,16 @@ class ApiService {
       headers: this.getAuthHeaders(),
     });
     return this.handleResponse(response);
+  }
+
+  async transferRoadmap(roadmapId: number, targetDesktopId: number, userId: number): Promise<Roadmap> {
+    const response = await fetch(`${API_BASE_URL}/roadmap/${roadmapId}/transfer?userId=${userId}`, {
+      method: 'PATCH',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify({ targetDesktopId }),
+    });
+    const result: ApiResponse<Roadmap> = await this.handleResponse(response);
+    return result.data;
   }
 
   async updateRoadmapStep(stepId: number, stepData: Partial<{
