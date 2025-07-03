@@ -467,7 +467,7 @@ const Desktop = () => {
       />
 
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm pt-8 z-10 border-b border-pink-200">
+      <header className="bg-white/80 backdrop-blur-sm z-10 border-b border-pink-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
@@ -647,7 +647,7 @@ const Desktop = () => {
 
       {/* Main Content - Only show if there are desktops */}
       {desktops.length > 0 && (
-        <main className="bg-white/60 min-h-[calc(100vh-295px)] max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <main className="bg-white/60 min-h-[calc(100vh-263px)] max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="px-4 py-6 sm:px-0">
             {/* Toolbar */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0 mb-6">
