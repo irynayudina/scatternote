@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { useAuth0 } from '@auth0/auth0-react';
 import CreateDesktopModal from './CreateDesktopModal'
 import CreateNoteModalWithDesktop from './CreateNoteModalWithDesktop'
+import EditDesktopsModal from './EditDesktopsModal'
 import LogoutButton from './LogoutButton'
 import { apiService } from '../services/api'
 import type { Desktop, User } from '../services/api'
@@ -16,6 +17,7 @@ const HomeBoard = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isCreateNoteModalOpen, setIsCreateNoteModalOpen] = useState(false)
+  const [isEditDesktopsModalOpen, setIsEditDesktopsModalOpen] = useState(false)
 
   useEffect(() => {
     if (auth0Loading) return;
@@ -104,6 +106,18 @@ const HomeBoard = () => {
     console.log('Note created successfully')
   }
 
+  const handleEditDesktops = () => {
+    setIsEditDesktopsModalOpen(true)
+  }
+
+  const handleDesktopsUpdated = async () => {
+    // Refresh desktop data after editing
+    if (user) {
+      await loadDesktops(user.id)
+    }
+    console.log('Desktops updated successfully')
+  }
+
   if (auth0Loading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100">
@@ -136,6 +150,14 @@ const HomeBoard = () => {
         userId={user?.id || 0}
         desktops={desktops}
         onNoteCreated={handleNoteCreated}
+      />
+
+      {/* Edit Desktops Modal */}
+      <EditDesktopsModal
+        isOpen={isEditDesktopsModalOpen}
+        onClose={() => setIsEditDesktopsModalOpen(false)}
+        desktops={desktops}
+        onDesktopsUpdated={handleDesktopsUpdated}
       />
 
       {/* Header */}
@@ -228,6 +250,14 @@ const HomeBoard = () => {
                           onClick={() => navigate(`/desktop/${desktops[0].id}`)}
                         >
                           Go to Desk
+                        </Button>
+                        <Button 
+                          className="w-12 border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400" 
+                          variant="outline"
+                          onClick={handleEditDesktops}
+                          title="Edit Desktops"
+                        >
+                          ✏️
                         </Button>
                         <Button 
                           className="w-12 border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400" 

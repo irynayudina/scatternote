@@ -169,6 +169,24 @@ class ApiService {
     return result.data;
   }
 
+  async updateDesktop(desktopId: number, desktopData: Partial<{ name: string; description: string }>): Promise<Desktop> {
+    const response = await fetch(`${API_BASE_URL}/desktop/${desktopId}`, {
+      method: 'PATCH',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(desktopData),
+    });
+    const result: ApiResponse<Desktop> = await this.handleResponse(response);
+    return result.data;
+  }
+
+  async deleteDesktop(desktopId: number): Promise<{ message: string }> {
+    const response = await fetch(`${API_BASE_URL}/desktop/${desktopId}`, {
+      method: 'DELETE',
+      headers: this.getAuthHeaders(),
+    });
+    return this.handleResponse(response);
+  }
+
   // Note API calls
   async getNotes(userId: number, desktopId?: number, search?: string): Promise<Note[]> {
     let url = `${API_BASE_URL}/note?userId=${userId}`;
