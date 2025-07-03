@@ -47,7 +47,7 @@ const RoadmapStepComponent = ({
     <Card 
       className={`border transition-all duration-200 ${
         isCompleted 
-          ? 'border-green-200 bg-green-50/50' 
+          ? 'border-purple-200 bg-gradient-to-r from-purple-50/50 to-pink-50/50' 
           : 'border-pink-200 bg-pink-50/50'
       }`}
     >
@@ -60,7 +60,7 @@ const RoadmapStepComponent = ({
             disabled={isLoading || isToggling}
             className={`h-8 w-8 p-0 ${
               isCompleted 
-                ? 'text-green-600 hover:text-green-700 hover:bg-green-100' 
+                ? 'text-purple-600 hover:text-purple-700 hover:bg-purple-100' 
                 : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
             }`}
           >
@@ -75,21 +75,21 @@ const RoadmapStepComponent = ({
             <div className="flex items-center space-x-2 mb-1">
               <span className="text-sm font-medium text-gray-600">Step {step.order}</span>
               {isCompleted && (
-                <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded-full">
+                <span className="text-xs font-medium text-purple-600 bg-gradient-to-r from-purple-100 to-pink-100 px-2 py-1 rounded-full">
                   COMPLETED
                 </span>
               )}
             </div>
             
             <h4 className={`font-medium ${
-              isCompleted ? 'text-green-800 line-through' : 'text-gray-800'
+              isCompleted ? 'text-purple-800' : 'text-gray-800'
             }`}>
               {step.title}
             </h4>
             
             {step.description && (
               <p className={`text-sm mt-1 ${
-                isCompleted ? 'text-green-600' : 'text-gray-600'
+                isCompleted ? 'text-purple-600' : 'text-gray-600'
               }`}>
                 {step.description}
               </p>
