@@ -28,7 +28,12 @@ const EditDesktopsModal = ({ isOpen, onClose, desktops, onDesktopsUpdated }: Edi
 
     setIsLoading(true)
     try {
-      await apiService.updateDesktop(desktopId, { name: editName.trim() })
+      const userData = sessionStorage.getItem('user')
+      if (!userData) {
+        throw new Error('User not found')
+      }
+      const user = JSON.parse(userData)
+      await apiService.updateDesktop(desktopId, { name: editName.trim() }, user.id)
       setEditingDesktop(null)
       setEditName('')
       onDesktopsUpdated()
@@ -51,7 +56,12 @@ const EditDesktopsModal = ({ isOpen, onClose, desktops, onDesktopsUpdated }: Edi
 
     setIsLoading(true)
     try {
-      await apiService.deleteDesktop(desktopId)
+      const userData = sessionStorage.getItem('user')
+      if (!userData) {
+        throw new Error('User not found')
+      }
+      const user = JSON.parse(userData)
+      await apiService.deleteDesktop(desktopId, user.id)
       onDesktopsUpdated()
     } catch (error) {
       console.error('Error deleting desktop:', error)

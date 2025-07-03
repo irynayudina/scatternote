@@ -169,8 +169,8 @@ class ApiService {
     return result.data;
   }
 
-  async updateDesktop(desktopId: number, desktopData: Partial<{ name: string; description: string }>): Promise<Desktop> {
-    const response = await fetch(`${API_BASE_URL}/desktop/${desktopId}`, {
+  async updateDesktop(desktopId: number, desktopData: Partial<{ name: string; description: string }>, userId: number): Promise<Desktop> {
+    const response = await fetch(`${API_BASE_URL}/desktop/${desktopId}?userId=${userId}`, {
       method: 'PATCH',
       headers: this.getAuthHeaders(),
       body: JSON.stringify(desktopData),
@@ -179,8 +179,8 @@ class ApiService {
     return result.data;
   }
 
-  async deleteDesktop(desktopId: number): Promise<{ message: string }> {
-    const response = await fetch(`${API_BASE_URL}/desktop/${desktopId}`, {
+  async deleteDesktop(desktopId: number, userId: number): Promise<{ message: string }> {
+    const response = await fetch(`${API_BASE_URL}/desktop/${desktopId}?userId=${userId}`, {
       method: 'DELETE',
       headers: this.getAuthHeaders(),
     });
