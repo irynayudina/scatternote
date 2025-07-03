@@ -57,6 +57,7 @@ const Desktop = () => {
   const [draggedItem, setDraggedItem] = useState<{ type: 'note' | 'roadmap', id: number, title: string } | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [dragOverDesktop, setDragOverDesktop] = useState<number | null>(null)
+  const [isDragModeEnabled, setIsDragModeEnabled] = useState(false)
 
   useEffect(() => {
     // Check if user is logged in
@@ -397,6 +398,10 @@ const Desktop = () => {
 
   // Drag and drop handlers
   const handleDragStart = (e: React.DragEvent, item: { type: 'note' | 'roadmap', id: number, title: string }) => {
+    if (!isDragModeEnabled) {
+      e.preventDefault()
+      return
+    }
     setDraggedItem(item)
     setIsDragging(true)
     e.dataTransfer.effectAllowed = 'move'
@@ -609,7 +614,7 @@ const Desktop = () => {
 
       {/* Desktop Carousel - Only show if there are desktops */}
       {desktops.length > 0 && (
-        <div className="bg-white/60 backdrop-blur-sm border-b border-pink-200 py-4">
+        <div className="bg-white/60 backdrop-blur-sm border-b border-pink-200 pt-4 pb-6">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div 
               ref={carouselRef}
@@ -672,7 +677,9 @@ const Desktop = () => {
                       }}
                     >
                       <div
-                        className={`w-16 h-16 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${bgColor}`}
+                        className={`w-16 h-16 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${bgColor} ${
+                        isDragModeEnabled ? 'ring-2 ring-pink-300 ring-opacity-30' : ''
+                      }`}
                         style={{
                           userSelect: 'none',
                           WebkitUserSelect: 'none',
@@ -727,10 +734,22 @@ const Desktop = () => {
                   <Map className="h-4 w-4" />
                   <span>Create Roadmap</span>
                 </Button>
-                <div className="text-xs text-gray-500 flex items-center space-x-1">
-                  <GripVertical className="h-3 w-3" />
-                  <span>Drag items to transfer between desktops</span>
-                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsDragModeEnabled(!isDragModeEnabled)}
+                  className={`border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400 ${
+                    isDragModeEnabled ? 'bg-gradient-to-r from-pink-100 to-purple-100 border-pink-400' : ''
+                  }`}
+                >
+                  <GripVertical className="h-3 w-3 mr-2" />
+                  {isDragModeEnabled ? 'Drag Mode On' : 'Drag Mode'}
+                </Button>
+                {isDragModeEnabled && (
+                  <div className="text-xs text-gray-500 flex items-center space-x-1">
+                    <span>Drag items to transfer between desktops</span>
+                  </div>
+                )}
               </div>
               
               <div className="flex items-center space-x-4">
@@ -803,16 +822,20 @@ const Desktop = () => {
                         key={roadmap.id} 
                         className={`cursor-pointer transition-all duration-200 hover:shadow-lg bg-white/80 backdrop-blur-sm border-purple-200 hover:border-purple-300 ${
                           isDragging && draggedItem?.id === roadmap.id ? 'opacity-50' : ''
+                        } ${
+                          isDragModeEnabled ? 'hover:ring-2 hover:ring-purple-300 hover:ring-opacity-30' : ''
                         }`}
                         onClick={() => handleRoadmapClick(roadmap)}
-                        draggable
+                        draggable={isDragModeEnabled}
                         onDragStart={(e) => handleDragStart(e, { type: 'roadmap', id: roadmap.id, title: roadmap.title })}
                         onDragEnd={handleDragEnd}
                       >
                         <CardHeader className="pb-3">
                           <div className="flex justify-between items-start">
                             <div className="flex items-center space-x-2 flex-1">
-                              <GripVertical className="h-4 w-4 text-gray-400 cursor-grab active:cursor-grabbing" />
+                              {isDragModeEnabled && (
+                                <GripVertical className="h-4 w-4 text-gray-400 cursor-grab active:cursor-grabbing" />
+                              )}
                               <CardTitle className="text-lg font-semibold line-clamp-2 text-transparent bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text">
                                 {roadmap.title}
                               </CardTitle>
@@ -902,20 +925,24 @@ const Desktop = () => {
                     key={note.id} 
                     className={`cursor-pointer transition-all duration-200 hover:shadow-lg bg-white/80 backdrop-blur-sm border-pink-200 hover:border-pink-300 ${
                       note.isPinned ? 'ring-2 ring-pink-500' : ''
-                    } ${isDragging && draggedItem?.id === note.id ? 'opacity-50' : ''}`}
+                    } ${isDragging && draggedItem?.id === note.id ? 'opacity-50' : ''} ${
+                      isDragModeEnabled ? 'hover:ring-2 hover:ring-pink-300 hover:ring-opacity-30' : ''
+                    }`}
                     onClick={() => handleNoteClick(note)}
-                    draggable
+                    draggable={isDragModeEnabled}
                     onDragStart={(e) => handleDragStart(e, { type: 'note', id: note.id, title: note.title })}
                     onDragEnd={handleDragEnd}
                   >
                     <CardHeader className="pb-3">
-                      <div className="flex justify-between items-start">
-                        <div className="flex items-center space-x-2 flex-1">
-                          <GripVertical className="h-4 w-4 text-gray-400 cursor-grab active:cursor-grabbing" />
-                          <CardTitle className="text-lg font-semibold line-clamp-2 text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text">
-                            {note.title}
-                          </CardTitle>
-                        </div>
+                                              <div className="flex justify-between items-start">
+                          <div className="flex items-center space-x-2 flex-1">
+                            {isDragModeEnabled && (
+                              <GripVertical className="h-4 w-4 text-gray-400 cursor-grab active:cursor-grabbing" />
+                            )}
+                            <CardTitle className="text-lg font-semibold line-clamp-2 text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text">
+                              {note.title}
+                            </CardTitle>
+                          </div>
                         {note.isPinned && (
                           <div className="text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-xs font-medium">PINNED</div>
                         )}
