@@ -80,6 +80,7 @@ const DesktopCarousel = ({
   // Handle scroll wheel events
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault()
+    e.stopPropagation()
     
     // Add a small delay to prevent rapid scrolling
     const threshold = 50 // Minimum scroll delta to trigger change
@@ -178,7 +179,7 @@ const DesktopCarousel = ({
               
               if (isActive) {
                 scale = 1.25
-                bgColor = 'bg-gradient-radial from-pink-500 via-purple-500 to-pink-500 border-pink-600 text-white'
+                bgColor = 'bg-gradient-radial from-pink-500 to-purple-500 border-pink-600 text-white'
                 textColor = 'text-transparent w-24 mx-2 truncate bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text'
               }
               
