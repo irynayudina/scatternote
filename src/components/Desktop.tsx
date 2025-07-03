@@ -1,14 +1,17 @@
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Search, Filter, Grid, List, Monitor, ArrowLeft, Map, GripVertical } from "lucide-react"
 import CreateNoteModal from "./CreateNoteModal"
 import CreateDesktopModal from "./CreateDesktopModal"
 import CreateRoadmapModal from "./CreateRoadmapModal"
 import NoteViewer from "./NoteViewer"
 import RoadmapViewer from "./RoadmapViewer"
 import FilterModal from "./FilterModal"
+import DesktopCarousel from "./DesktopCarousel"
+import RoadmapsSection from "./RoadmapsSection"
+import NotesSection from "./NotesSection"
+import DesktopToolbar from "./DesktopToolbar"
+import EmptyDesktopState from "./EmptyDesktopState"
 import type { FilterState } from "./FilterModal"
 import { apiService } from "@/services/api"
 import type { Note, Desktop as DesktopType, Roadmap } from "@/services/api"
@@ -42,7 +45,6 @@ const Desktop = () => {
   const [isRoadmapViewerOpen, setIsRoadmapViewerOpen] = useState(false)
   const [isCreateRoadmapModalOpen, setIsCreateRoadmapModalOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const carouselRef = useRef<HTMLDivElement>(null)
   
   // Filter state
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
@@ -82,33 +84,7 @@ const Desktop = () => {
     }
   }, [navigate, id])
 
-  // Rearrange desktops to keep active one in the middle
-  const getRearrangedDesktops = () => {
-    if (desktops.length === 0) return []
-    
-    const activeIndex = desktops.findIndex(d => d.id === activeDesktopId)
-    if (activeIndex === -1) return desktops
-    
-    const middleIndex = Math.floor(desktops.length / 2)
-    const shift = middleIndex - activeIndex
-    
-    const rearranged = [...desktops]
-    if (shift > 0) {
-      // Move active element forward
-      for (let i = 0; i < shift; i++) {
-        const last = rearranged.pop()!
-        rearranged.unshift(last)
-      }
-    } else if (shift < 0) {
-      // Move active element backward
-      for (let i = 0; i < Math.abs(shift); i++) {
-        const first = rearranged.shift()!
-        rearranged.push(first)
-      }
-    }
-    
-    return rearranged
-  }
+
 
   const loadDesktops = async (userId: number) => {
     try {
@@ -189,91 +165,7 @@ const Desktop = () => {
     navigate(`/desktop/${desktopId}`)
   }
 
-  // Navigate to next desktop
-  const goToNextDesktop = () => {
-    const currentIndex = desktops.findIndex(d => d.id === activeDesktopId)
-    const nextIndex = (currentIndex + 1) % desktops.length
-    const nextDesktop = desktops[nextIndex]
-    if (nextDesktop) {
-      handleDesktopChange(nextDesktop.id)
-    }
-  }
 
-  // Navigate to previous desktop
-  const goToPreviousDesktop = () => {
-    const currentIndex = desktops.findIndex(d => d.id === activeDesktopId)
-    const prevIndex = currentIndex === 0 ? desktops.length - 1 : currentIndex - 1
-    const prevDesktop = desktops[prevIndex]
-    if (prevDesktop) {
-      handleDesktopChange(prevDesktop.id)
-    }
-  }
-
-  // Handle scroll wheel events
-  const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault()
-    
-    // Add a small delay to prevent rapid scrolling
-    const threshold = 50 // Minimum scroll delta to trigger change
-    
-    if (Math.abs(e.deltaX) > threshold || Math.abs(e.deltaY) > threshold) {
-      if (e.deltaX > 0 || e.deltaY > 0) {
-        goToNextDesktop()
-      } else {
-        goToPreviousDesktop()
-      }
-    }
-  }
-
-  // Touch swipe handlers
-  const [touchStartX, setTouchStartX] = useState(0)
-  const [touchStartY, setTouchStartY] = useState(0)
-  const [isSwiping, setIsSwiping] = useState(false)
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStartX(e.touches[0].clientX)
-    setTouchStartY(e.touches[0].clientY)
-    setIsSwiping(false)
-  }
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!touchStartX || !touchStartY) return
-
-    const touchCurrentX = e.touches[0].clientX
-    const touchCurrentY = e.touches[0].clientY
-    
-    const deltaX = touchStartX - touchCurrentX
-    const deltaY = touchStartY - touchCurrentY
-    
-    // Determine if this is a horizontal swipe
-    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
-      setIsSwiping(true)
-      e.preventDefault() // Prevent default scrolling during horizontal swipe
-    }
-  }
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!touchStartX || !touchStartY || !isSwiping) return
-
-    const touchEndX = e.changedTouches[0].clientX
-    const deltaX = touchStartX - touchEndX
-    const minSwipeDistance = 50 // Minimum distance for a swipe
-
-    if (Math.abs(deltaX) > minSwipeDistance) {
-      if (deltaX > 0) {
-        // Swiped left - go to next
-        goToNextDesktop()
-      } else {
-        // Swiped right - go to previous
-        goToPreviousDesktop()
-      }
-    }
-
-    // Reset touch state
-    setTouchStartX(0)
-    setTouchStartY(0)
-    setIsSwiping(false)
-  }
 
   // Handle search with API
   const handleSearch = async (query: string) => {
@@ -467,7 +359,7 @@ const Desktop = () => {
     return null
   }
 
-  const rearrangedDesktops = getRearrangedDesktops();
+
 
   return (
     <div className="min-h-screen">
@@ -567,156 +459,24 @@ const Desktop = () => {
 
       {/* Empty Desktop State */}
       {!isLoading && desktops.length === 0 && (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100">
-          <div className="max-w-md mx-auto text-center px-6">
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-pink-200 p-8">
-              <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-pink-100 to-purple-100 rounded-full flex items-center justify-center">
-                <Monitor className="h-10 w-10 text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text" />
-              </div>
-              
-              <h2 className="text-2xl font-bold text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text mb-4">
-                Welcome to ScatterNote!
-              </h2>
-              
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                You don't have any desktops yet. Desktops help you organize your notes into different workspaces. 
-                Create your first desktop to get started with note-taking.
-              </p>
-              
-              <div className="space-y-4">
-                <Button 
-                  onClick={handleCreateDesktop}
-                  className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white border-0 py-3"
-                >
-                  <Monitor className="h-5 w-5 mr-2" />
-                  Create Your First Desktop
-                </Button>
-                
-                <Button 
-                  onClick={() => navigate('/home-board')}
-                  variant="outline"
-                  className="w-full border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400"
-                >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Home Board
-                </Button>
-              </div>
-              
-              <div className="mt-6 pt-6 border-t border-pink-200">
-                <p className="text-xs text-gray-500">
-                  💡 Tip: You can create multiple desktops for different projects or topics
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <EmptyDesktopState
+          onCreateDesktop={handleCreateDesktop}
+          onGoToHomeBoard={() => navigate('/home-board')}
+        />
       )}
 
       {/* Desktop Carousel - Only show if there are desktops */}
       {desktops.length > 0 && (
-        <div className="bg-white/60 backdrop-blur-sm border-b border-pink-200 pt-4 pb-6">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div 
-              ref={carouselRef}
-              className="relative overflow-visible"
-              onWheel={handleWheel}
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-              style={{ 
-                userSelect: 'none',
-                WebkitUserSelect: 'none',
-                MozUserSelect: 'none',
-                msUserSelect: 'none',
-                height: '120px',
-                zIndex: 10
-              }}
-            >
-              <div 
-                className="flex justify-center items-center space-x-8 py-4 transition-all duration-300 ease-out"
-                style={{ 
-                  userSelect: 'none',
-                  WebkitUserSelect: 'none',
-                  MozUserSelect: 'none',
-                  msUserSelect: 'none'
-                }}
-              >
-                {rearrangedDesktops.map((desktopItem) => {
-                  const isActive = desktopItem.id === activeDesktopId
-                  
-                  // Determine scale and styling based on state
-                  let scale = 1
-                  let bgColor = 'bg-gray-100 border-gray-300 text-gray-600'
-                  let textColor = 'text-gray-500 w-24 bg-pink-100 p-2 rounded-md truncate'
-                  
-                  if (isActive) {
-                    scale = 1.25
-                    bgColor = 'bg-gradient-radial from-pink-500 via-purple-500 to-pink-500 border-pink-600 text-white'
-                    textColor = 'text-transparent w-24 mx-2 truncate bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text'
-                  }
-                  
-                  return (
-                    <div
-                      key={desktopItem.id}
-                      className={`flex flex-col items-center transition-all duration-300 cursor-pointer ${
-                        isActive ? 'scale-125' : 'scale-100 opacity-60 hover:opacity-80'
-                      } ${dragOverDesktop === desktopItem.id ? 'ring-4 ring-pink-400 ring-opacity-50' : ''}`}
-                      onClick={() => handleDesktopChange(desktopItem.id)}
-                      onDragOver={(e) => handleDragOver(e, desktopItem.id)}
+        <DesktopCarousel
+          desktops={desktops}
+          activeDesktopId={activeDesktopId}
+          onDesktopChange={handleDesktopChange}
+          isDragModeEnabled={isDragModeEnabled}
+          dragOverDesktop={dragOverDesktop}
+          onDragOver={handleDragOver}
                       onDragLeave={handleDragLeave}
-                      onDrop={(e) => handleDrop(e, desktopItem.id)}
-                      style={{
-                        transform: `scale(${scale})`,
-                        opacity: isActive ? 1 : 0.6,
-                        transition: 'all 0.3s ease-out',
-                        userSelect: 'none',
-                        WebkitUserSelect: 'none',
-                        MozUserSelect: 'none',
-                        msUserSelect: 'none',
-                        WebkitTouchCallout: 'none'
-                      }}
-                    >
-                      <div
-                        className={`w-16 h-16 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${bgColor} ${
-                        isDragModeEnabled ? 'ring-2 ring-pink-300 ring-opacity-30' : ''
-                      }`}
-                        style={{
-                          userSelect: 'none',
-                          WebkitUserSelect: 'none',
-                          MozUserSelect: 'none',
-                          msUserSelect: 'none'
-                        }}
-                      >
-                        <span 
-                          className="text-sm font-semibold"
-                          style={{
-                            userSelect: 'none',
-                            WebkitUserSelect: 'none',
-                            MozUserSelect: 'none',
-                            msUserSelect: 'none'
-                          }}
-                        >
-                          {desktopItem.name.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                      <span 
-                        className={`text-xs mt-2 font-medium transition-all duration-300 ${textColor}`}
-                        style={{
-                          userSelect: 'none',
-                          WebkitUserSelect: 'none',
-                          MozUserSelect: 'none',
-                          msUserSelect: 'none'
-                        }}
-                      >
-                        {desktopItem.name}
-                      </span>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
+          onDrop={handleDrop}
+        />
       )}
 
       {/* Main Content - Only show if there are desktops */}
@@ -724,182 +484,44 @@ const Desktop = () => {
         <main className="bg-white/60 min-h-[calc(100vh-271px)] max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="px-4 py-6 sm:px-0">
             {/* Toolbar */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0 mb-6">
-              <div className="flex items-center space-x-4">
-                <Button onClick={handleCreateNote} className="flex items-center space-x-2 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white border-0">
-                  <Plus className="h-4 w-4" />
-                  <span>Create Note</span>
-                </Button>
-                <Button onClick={handleCreateRoadmap} className="flex items-center space-x-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0">
-                  <Map className="h-4 w-4" />
-                  <span>Create Roadmap</span>
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsDragModeEnabled(!isDragModeEnabled)}
-                  className={`border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400 ${
-                    isDragModeEnabled ? 'bg-gradient-to-r from-pink-100 to-purple-100 border-pink-400' : ''
-                  }`}
-                >
-                  <GripVertical className="h-3 w-3 mr-2" />
-                  {isDragModeEnabled ? 'Drag Mode On' : 'Drag Mode'}
-                </Button>
-                {isDragModeEnabled && (
-                  <div className="text-xs text-gray-500 flex items-center space-x-1">
-                    <span>Drag items to transfer between desktops</span>
-                  </div>
-                )}
-              </div>
-              
-              <div className="flex items-center space-x-4">
-                {/* Search */}
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-pink-400" />
-                  <input
-                    type="text"
-                    placeholder="Search notes..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-pink-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white/80 backdrop-blur-sm"
-                  />
-                </div>
-                
-                {/* Filter */}
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className={`border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400 ${
-                    (filters.dateRange.startDate || filters.dateRange.endDate || filters.selectedTags.length > 0 || filters.isPinned !== null) 
-                      ? 'bg-gradient-to-r from-pink-100 to-purple-100 border-pink-400' 
-                      : ''
-                  }`}
-                  onClick={() => setIsFilterModalOpen(true)}
-                >
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filter
-                  {(filters.dateRange.startDate || filters.dateRange.endDate || filters.selectedTags.length > 0 || filters.isPinned !== null) && (
-                    <span className="ml-2 w-2 h-2 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full"></span>
-                  )}
-                </Button>
-                
-                {/* View Mode Toggle */}
-                <div className="flex border border-pink-300 rounded-md">
-                  <Button
-                    variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setViewMode('grid')}
-                    className={`rounded-r-none ${viewMode === 'grid' ? 'bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white border-0' : 'text-pink-600 hover:bg-pink-50'}`}
-                  >
-                    <Grid className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={viewMode === 'list' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setViewMode('list')}
-                    className={`rounded-l-none ${viewMode === 'list' ? 'bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white border-0' : 'text-pink-600 hover:bg-pink-50'}`}
-                  >
-                    <List className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
+            <DesktopToolbar
+              onCreateNote={handleCreateNote}
+              onCreateRoadmap={handleCreateRoadmap}
+              isDragModeEnabled={isDragModeEnabled}
+              onToggleDragMode={() => setIsDragModeEnabled(!isDragModeEnabled)}
+              searchQuery={searchQuery}
+              onSearchChange={(query) => setSearchQuery(query)}
+              filters={filters}
+              onOpenFilterModal={() => setIsFilterModalOpen(true)}
+              viewMode={viewMode}
+              onViewModeChange={(mode) => setViewMode(mode)}
+            />
 
             {/* Roadmaps Section */}
-            {roadmaps?.length > 0 && (
-              <div className="mb-8">
-                <h3 className="text-xl font-semibold text-transparent bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text mb-4">
-                  Roadmaps
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {roadmaps?.map((roadmap) => {
-                    const completedSteps = roadmap.steps.filter(step => step.isCompleted).length
-                    const totalSteps = roadmap.steps.length
-                    const progressPercentage = totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0
-
-                    return (
-                      <Card 
-                        key={roadmap.id} 
-                        className={`cursor-pointer transition-all duration-200 hover:shadow-lg bg-white/80 backdrop-blur-sm border-purple-200 hover:border-purple-300 ${
-                          isDragging && draggedItem?.id === roadmap.id ? 'opacity-50' : ''
-                        } ${
-                          isDragModeEnabled ? 'hover:ring-2 hover:ring-purple-400' : ''
-                        }`}
-                        onClick={() => handleRoadmapClick(roadmap)}
-                        draggable={isDragModeEnabled}
-                        onDragStart={(e) => handleDragStart(e, { type: 'roadmap', id: roadmap.id, title: roadmap.title })}
+            <RoadmapsSection
+              roadmaps={roadmaps}
+              onRoadmapClick={handleRoadmapClick}
+              isDragModeEnabled={isDragModeEnabled}
+              isDragging={isDragging}
+              draggedItem={draggedItem}
+              onDragStart={handleDragStart}
                         onDragEnd={handleDragEnd}
-                      >
-                        <CardHeader className="pb-3">
-                          <div className="flex justify-between items-start">
-                            <div className="flex items-center space-x-2 flex-1">
-                              {isDragModeEnabled && (
-                                <GripVertical className="h-4 w-4 text-gray-400 cursor-grab active:cursor-grabbing" />
-                              )}
-                              <CardTitle className="text-lg font-semibold line-clamp-2 text-transparent bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text">
-                                {roadmap.title}
-                              </CardTitle>
-                            </div>
-                            <Map className="h-5 w-5 text-purple-500" />
-                          </div>
-                          {roadmap.description && (
-                            <CardDescription className="text-sm text-gray-500 line-clamp-2">
-                              {roadmap.description}
-                            </CardDescription>
-                          )}
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-3">
-                            <div className="flex justify-between items-center text-sm">
-                              <span className="text-gray-600">Progress</span>
-                              <span className="text-purple-600 font-medium">
-                                {completedSteps}/{totalSteps} steps
-                              </span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div
-                                className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-300"
-                                style={{ width: `${progressPercentage}%` }}
-                              />
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {Math.round(progressPercentage)}% complete
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
+            />
 
             {/* Notes Section */}
-            <div className="mb-6">
-              <h3 className="text-xl font-semibold text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text mb-4">
-                Notes
-              </h3>
-            </div>
-
-            {/* Notes Grid/List */}
-            {filteredNotes.length === 0 ? (
-              <div className="text-center py-10">
-                <div className="text-gray-500 text-lg mb-4 w-fit mx-auto bg-pink-100 p-2 rounded-md">
-                  {searchQuery 
-                    ? 'No notes found matching your search' 
-                    : (filters.dateRange.startDate || filters.dateRange.endDate || filters.selectedTags.length > 0 || filters.isPinned !== null)
-                    ? 'No notes match your current filters'
-                    : 'No notes found'
-                  }
-                </div>
-                {!searchQuery && !(filters.dateRange.startDate || filters.dateRange.endDate || filters.selectedTags.length > 0 || filters.isPinned !== null) && (
-                  <Button onClick={handleCreateNote} variant="outline" className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400">
-                    Create your first note
-                  </Button>
-                )}
-                {(searchQuery || filters.dateRange.startDate || filters.dateRange.endDate || filters.selectedTags.length > 0 || filters.isPinned !== null) && (
-                  <Button 
-                    onClick={() => {
+            <NotesSection
+              notes={filteredNotes}
+              viewMode={viewMode}
+              searchQuery={searchQuery}
+              filters={filters}
+              isDragModeEnabled={isDragModeEnabled}
+              isDragging={isDragging}
+              draggedItem={draggedItem}
+              onNoteClick={handleNoteClick}
+              onCreateNote={handleCreateNote}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+              onClearSearchAndFilters={() => {
                       setSearchQuery('')
                       const resetFilters: FilterState = {
                         dateRange: { startDate: '', endDate: '' },
@@ -908,70 +530,7 @@ const Desktop = () => {
                       }
                       setFilters(resetFilters)
                     }} 
-                    variant="outline" 
-                    className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400"
-                  >
-                    Clear search and filters
-                  </Button>
-                )}
-              </div>
-            ) : (
-              <div className={viewMode === 'grid' 
-                ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-                : "space-y-4"
-              }>
-                {filteredNotes.map((note) => (
-                  <Card 
-                    key={note.id} 
-                    className={`cursor-pointer transition-all duration-200 hover:shadow-lg bg-white/80 backdrop-blur-sm border-pink-200 hover:border-pink-300 ${
-                      note.isPinned ? 'ring-2 ring-pink-500' : ''
-                    } ${isDragging && draggedItem?.id === note.id ? 'opacity-50' : ''} ${
-                      isDragModeEnabled ? 'hover:ring-2 hover:ring-pink-400' : ''
-                    }`}
-                    onClick={() => handleNoteClick(note)}
-                    draggable={isDragModeEnabled}
-                    onDragStart={(e) => handleDragStart(e, { type: 'note', id: note.id, title: note.title })}
-                    onDragEnd={handleDragEnd}
-                  >
-                    <CardHeader className="pb-3">
-                                              <div className="flex justify-between items-start">
-                          <div className="flex items-center space-x-2 flex-1">
-                            {isDragModeEnabled && (
-                              <GripVertical className="h-4 w-4 text-gray-400 cursor-grab active:cursor-grabbing" />
-                            )}
-                            <CardTitle className="text-lg font-semibold line-clamp-2 text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text">
-                              {note.title}
-                            </CardTitle>
-                          </div>
-                        {note.isPinned && (
-                          <div className="text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-xs font-medium">PINNED</div>
-                        )}
-                      </div>
-                      <CardDescription className="text-sm text-gray-500">
-                        {new Date(note.updatedAt).toLocaleDateString()}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-gray-700 line-clamp-3 mb-3">
-                        {note.content}
-                      </p>
-                      {note.tags && note.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {note.tags.map((tagItem, index) => (
-                            <span
-                              key={index}
-                              className="inline-block bg-gradient-to-r from-pink-100 to-purple-100 text-pink-700 text-xs px-2 py-1 rounded-full border border-pink-200"
-                            >
-                              {tagItem.tag.name}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
+            />
           </div>
         </main>
       )}
