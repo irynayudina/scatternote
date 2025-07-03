@@ -716,13 +716,13 @@ const Desktop = () => {
             </div>
 
             {/* Roadmaps Section */}
-            {roadmaps.length > 0 && (
+            {roadmaps?.length > 0 && (
               <div className="mb-8">
                 <h3 className="text-xl font-semibold text-transparent bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text mb-4">
                   Roadmaps
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {roadmaps.map((roadmap) => {
+                  {roadmaps?.map((roadmap) => {
                     const completedSteps = roadmap.steps.filter(step => step.isCompleted).length
                     const totalSteps = roadmap.steps.length
                     const progressPercentage = totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0
