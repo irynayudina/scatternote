@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { CheckCircle, Circle, Edit3, Save, X, Trash2, ArrowUp, ArrowDown } from 'lucide-react'
 import { apiService } from '@/services/api'
@@ -314,7 +313,7 @@ const RoadmapViewer = ({
               </div>
             ) : (
               <div className="space-y-3">
-                {roadmap.steps.map((step, index) => (
+                {roadmap.steps.map((step) => (
                   <Card 
                     key={step.id} 
                     className={`border transition-all duration-200 ${

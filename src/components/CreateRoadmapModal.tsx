@@ -1,12 +1,11 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent} from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Plus, X, GripVertical } from 'lucide-react'
 import { apiService } from '@/services/api'
-import type { Roadmap } from '@/services/api'
 
 interface CreateRoadmapModalProps {
   isOpen: boolean
@@ -51,17 +50,17 @@ const CreateRoadmapModal = ({ isOpen, onClose, desktopId, userId, onRoadmapCreat
     setSteps(newSteps)
   }
 
-  const moveStep = (fromIndex: number, toIndex: number) => {
-    if (toIndex < 0 || toIndex >= steps.length) return
+//   const moveStep = (fromIndex: number, toIndex: number) => {
+//     if (toIndex < 0 || toIndex >= steps.length) return
     
-    const newSteps = [...steps]
-    const [movedStep] = newSteps.splice(fromIndex, 1)
-    newSteps.splice(toIndex, 0, movedStep)
+//     const newSteps = [...steps]
+//     const [movedStep] = newSteps.splice(fromIndex, 1)
+//     newSteps.splice(toIndex, 0, movedStep)
     
-    // Reorder all steps
-    const reorderedSteps = newSteps.map((step, i) => ({ ...step, order: i + 1 }))
-    setSteps(reorderedSteps)
-  }
+//     // Reorder all steps
+//     const reorderedSteps = newSteps.map((step, i) => ({ ...step, order: i + 1 }))
+//     setSteps(reorderedSteps)
+//   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
