@@ -122,7 +122,7 @@ const Settings = () => {
     <div className="min-h-screen">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm shadow-lg border-b border-pink-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center space-x-4">
               {user.picture && (
@@ -152,7 +152,7 @@ const Settings = () => {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <main className="max-w-[1920px] mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Settings Panel */}

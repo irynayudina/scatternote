@@ -550,7 +550,7 @@ const Desktop = () => {
 
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm z-10 border-b border-pink-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
               <h1 className="text-3xl font-bold text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text after:content-[''] after:block after:w-full after:h-[1px] after:bg-pink-200 before:content-[''] before:inline-block before:w-6 before:h-6 before:bg-gradient-to-r before:from-pink-400 before:to-purple-400 before:rounded-full before:mr-2">{desktop.name}</h1>
@@ -593,7 +593,7 @@ const Desktop = () => {
       {/* Desktop Carousel - Only show if there are desktops */}
       {desktops.length > 0 && (
         <div className="bg-white/60 backdrop-blur-sm border-b border-pink-200 pt-4 pb-6">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
             <div 
               ref={carouselRef}
               className="relative overflow-visible"
@@ -641,7 +641,7 @@ const Desktop = () => {
 
       {/* Main Content - Only show if there are desktops */}
       {desktops.length > 0 && (
-        <main className="bg-white/60 min-h-[calc(100vh-271px)] max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <main className="bg-white/60 min-h-[calc(100vh-271px)] max-w-[1920px] mx-auto py-6 sm:px-6 lg:px-8">
           <div className="px-4 py-6 sm:px-0">
             {/* Toolbar */}
             <DesktopToolbar

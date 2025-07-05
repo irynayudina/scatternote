@@ -170,7 +170,7 @@ const KnowledgeBase = () => {
     <div className="min-h-screen">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm shadow-lg border-b border-pink-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center space-x-4">
               {user.picture && (
@@ -207,7 +207,7 @@ const KnowledgeBase = () => {
       </header>
 
       {/* Search and Filters */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="bg-white/80 backdrop-blur-sm rounded-lg border border-pink-200 p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Search */}
