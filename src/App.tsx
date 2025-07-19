@@ -12,73 +12,79 @@ import KnowledgeBase from './components/KnowledgeBase';
 import Settings from './components/Settings';
 import { BackgroundProvider } from './contexts/BackgroundContext';
 import BackgroundWrapper from './components/BackgroundWrapper';
+import { ApolloProvider } from '@apollo/client';
+import { client } from './services/graphql-api';
+import GraphQLTest from './components/GraphQLTest';
 
 function App() {
   return (
-    <Auth0Provider {...auth0Config}>
-      <BackgroundProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<LogIn />} />
+    <ApolloProvider client={client}>
+      <Auth0Provider {...auth0Config}>
+        <BackgroundProvider>
+          <BrowserRouter>
+            <Routes>
+                          <Route path="/" element={<LogIn />} />
             <Route path="/signup" element={<SignUp />} />
-            <Route 
-              path="/username-selection" 
-              element={
-                <ProtectedRoute>
-                  <BackgroundWrapper>
-                    <UsernameSelection onComplete={() => {
-                      // This will be handled by the UsernameSelection component
-                      window.location.href = '/home-board';
-                    }} />
-                  </BackgroundWrapper>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/home-board" 
-              element={
-                <ProtectedRoute>
-                  <BackgroundWrapper>
-                    <HomeBoard />
-                  </BackgroundWrapper>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/desktop/:id" 
-              element={
-                <ProtectedRoute>
-                  <BackgroundWrapper>
-                    <Desktop />
-                  </BackgroundWrapper>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/knowledge-base" 
-              element={
-                <ProtectedRoute>
-                  <BackgroundWrapper>
-                    <KnowledgeBase />
-                  </BackgroundWrapper>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/settings" 
-              element={
-                <ProtectedRoute>
-                  <BackgroundWrapper>
-                    <Settings />
-                  </BackgroundWrapper>
-                </ProtectedRoute>
-              } 
-            />
-            <Route path="*" element={<div>404 - Page Not Found</div>} />
-          </Routes>
-        </BrowserRouter>
-      </BackgroundProvider>
-    </Auth0Provider>
+            <Route path="/test-graphql" element={<GraphQLTest />} />
+              <Route 
+                path="/username-selection" 
+                element={
+                  <ProtectedRoute>
+                    <BackgroundWrapper>
+                      <UsernameSelection onComplete={() => {
+                        // This will be handled by the UsernameSelection component
+                        window.location.href = '/home-board';
+                      }} />
+                    </BackgroundWrapper>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/home-board" 
+                element={
+                  <ProtectedRoute>
+                    <BackgroundWrapper>
+                      <HomeBoard />
+                    </BackgroundWrapper>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/desktop/:id" 
+                element={
+                  <ProtectedRoute>
+                    <BackgroundWrapper>
+                      <Desktop />
+                    </BackgroundWrapper>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/knowledge-base" 
+                element={
+                  <ProtectedRoute>
+                    <BackgroundWrapper>
+                      <KnowledgeBase />
+                    </BackgroundWrapper>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/settings" 
+                element={
+                  <ProtectedRoute>
+                    <BackgroundWrapper>
+                      <Settings />
+                    </BackgroundWrapper>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route path="*" element={<div>404 - Page Not Found</div>} />
+            </Routes>
+          </BrowserRouter>
+        </BackgroundProvider>
+      </Auth0Provider>
+    </ApolloProvider>
   )
 }
 

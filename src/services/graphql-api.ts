@@ -1,9 +1,11 @@
 import { ApolloClient, InMemoryCache, createHttpLink, gql } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 
+import { API_BASE_URL } from '../config/environment';
+
 // GraphQL Client Setup
 const httpLink = createHttpLink({
-  uri: 'http://localhost:3000/graphql', // Adjust URL as needed
+  uri: `${API_BASE_URL}/graphql`,
 });
 
 const authLink = setContext((_, { headers }) => {
@@ -706,54 +708,89 @@ const REORDER_STEPS = gql`
 
 // GraphQL API Service Class
 class GraphQLApiService {
+  private handleError(error: any): never {
+    console.error('GraphQL API Error:', error);
+    if (error.graphQLErrors && error.graphQLErrors.length > 0) {
+      throw new Error(error.graphQLErrors[0].message);
+    }
+    if (error.networkError) {
+      throw new Error('Network error: Unable to connect to the server');
+    }
+    throw new Error(error.message || 'An unexpected error occurred');
+  }
+
   // Auth API calls
   async createUser(auth0User: Auth0User): Promise<User> {
-    const { data } = await client.mutate({
-      mutation: CREATE_OR_UPDATE_USER,
-      variables: { auth0User }
-    });
-    return data.createOrUpdateUser;
+    try {
+      const { data } = await client.mutate({
+        mutation: CREATE_OR_UPDATE_USER,
+        variables: { auth0User }
+      });
+      return data.createOrUpdateUser;
+    } catch (error) {
+      this.handleError(error);
+    }
   }
 
   async createUserWithUsername(auth0User: Auth0User & { username: string }): Promise<User> {
-    const { data } = await client.mutate({
-      mutation: CREATE_USER_WITH_USERNAME,
-      variables: { createUserDto: auth0User }
-    });
-    return data.createUserWithCustomUsername;
+    try {
+      const { data } = await client.mutate({
+        mutation: CREATE_USER_WITH_USERNAME,
+        variables: { createUserDto: auth0User }
+      });
+      return data.createUserWithCustomUsername;
+    } catch (error) {
+      this.handleError(error);
+    }
   }
 
   async getProfile(auth0Id: string): Promise<User> {
-    const { data } = await client.query({
-      query: GET_USER_PROFILE,
-      variables: { auth0Id }
-    });
-    return data.userProfile;
+    try {
+      const { data } = await client.query({
+        query: GET_USER_PROFILE,
+        variables: { auth0Id }
+      });
+      return data.userProfile;
+    } catch (error) {
+      this.handleError(error);
+    }
   }
 
   // Desktop API calls
   async getDesktops(userId: number): Promise<Desktop[]> {
-    const { data } = await client.query({
-      query: GET_DESKTOPS,
-      variables: { userId }
-    });
-    return data.desktops;
+    try {
+      const { data } = await client.query({
+        query: GET_DESKTOPS,
+        variables: { userId }
+      });
+      return data.desktops;
+    } catch (error) {
+      this.handleError(error);
+    }
   }
 
   async getDesktop(desktopId: number, userId: number): Promise<Desktop> {
-    const { data } = await client.query({
-      query: GET_DESKTOP,
-      variables: { desktopId, userId }
-    });
-    return data.desktop;
+    try {
+      const { data } = await client.query({
+        query: GET_DESKTOP,
+        variables: { desktopId, userId }
+      });
+      return data.desktop;
+    } catch (error) {
+      this.handleError(error);
+    }
   }
 
   async createDesktop(desktopData: { name: string; description?: string }, userId: number): Promise<Desktop> {
-    const { data } = await client.mutate({
-      mutation: CREATE_DESKTOP,
-      variables: { createDesktopInput: desktopData, userId }
-    });
-    return data.createDesktop;
+    try {
+      const { data } = await client.mutate({
+        mutation: CREATE_DESKTOP,
+        variables: { createDesktopInput: desktopData, userId }
+      });
+      return data.createDesktop;
+    } catch (error) {
+      this.handleError(error);
+    }
   }
 
   async updateDesktop(desktopId: number, desktopData: Partial<{ name: string; description: string }>, userId: number): Promise<Desktop> {
