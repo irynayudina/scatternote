@@ -30,44 +30,61 @@ const DesktopToolbar = ({
   const hasActiveFilters = filters.dateRange.startDate || filters.dateRange.endDate || filters.selectedTags.length > 0 || filters.isPinned !== null
 
   return (
-    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0 mb-6">
-      <div className="flex items-center space-x-4">
-        <Button onClick={onCreateNote} className="flex items-center space-x-2 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white border-0">
-          <Plus className="h-4 w-4" />
-          <span>Create Note</span>
+    <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 lg:gap-4 mb-4 sm:mb-6">
+      {/* Left side - Action buttons */}
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto">
+        <Button 
+          onClick={onCreateNote} 
+          size="sm"
+          className="flex items-center gap-1.5 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white border-0 text-xs sm:text-sm px-2 sm:px-3"
+        >
+          <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+          <span className="hidden sm:inline">Create Note</span>
+          <span className="sm:hidden">Note</span>
         </Button>
-        <Button onClick={onCreateRoadmap} className="flex items-center space-x-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0">
-          <Map className="h-4 w-4" />
-          <span>Create Roadmap</span>
+        
+        <Button 
+          onClick={onCreateRoadmap} 
+          size="sm"
+          className="flex items-center gap-1.5 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 text-xs sm:text-sm px-2 sm:px-3"
+        >
+          <Map className="h-3 w-3 sm:h-4 sm:w-4" />
+          <span className="hidden sm:inline">Create Roadmap</span>
+          <span className="sm:hidden">Map</span>
         </Button>
+        
         <Button
           variant="outline"
           size="sm"
           onClick={onToggleDragMode}
-          className={`border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400 ${
+          className={`border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400 text-xs sm:text-sm px-2 sm:px-3 ${
             isDragModeEnabled ? 'bg-gradient-to-r from-pink-100 to-purple-100 border-pink-400' : ''
           }`}
         >
-          <GripVertical className="h-3 w-3 mr-2" />
-          {isDragModeEnabled ? 'Drag Mode On' : 'Drag Mode'}
+          <GripVertical className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+          <span className="hidden sm:inline">{isDragModeEnabled ? 'Drag Mode On' : 'Drag Mode'}</span>
+          <span className="sm:hidden">{isDragModeEnabled ? 'On' : 'Drag'}</span>
         </Button>
+        
         {isDragModeEnabled && (
-          <div className="text-xs text-gray-500 flex items-center space-x-1">
-            <span>Drag items to transfer between desktops</span>
+          <div className="text-xs text-gray-500 flex items-center gap-1 bg-pink-50 px-2 py-1 rounded-md">
+            <span className="hidden sm:inline">Drag items to transfer between desktops</span>
+            <span className="sm:hidden">Drag to transfer</span>
           </div>
         )}
       </div>
       
-      <div className="flex items-center space-x-4">
+      {/* Right side - Search, Filter, View Mode */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full lg:w-auto">
         {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-pink-400" />
+        <div className="relative flex-1 sm:flex-none">
+          <Search className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 h-3 w-3 sm:h-4 sm:w-4 text-pink-400" />
           <input
             type="text"
             placeholder="Search notes..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-10 pr-4 py-2 border border-pink-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white/80 backdrop-blur-sm"
+            className="w-full sm:w-48 lg:w-64 pl-7 sm:pl-10 pr-3 sm:pr-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-pink-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-white/80 backdrop-blur-sm"
           />
         </div>
         
@@ -75,17 +92,18 @@ const DesktopToolbar = ({
         <Button 
           variant="outline" 
           size="sm" 
-          className={`border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400 ${
+          className={`border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400 text-xs sm:text-sm px-2 sm:px-3 ${
             hasActiveFilters 
               ? 'bg-gradient-to-r from-pink-100 to-purple-100 border-pink-400' 
               : ''
           }`}
           onClick={onOpenFilterModal}
         >
-          <Filter className="h-4 w-4 mr-2" />
-          Filter
+          <Filter className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+          <span className="hidden sm:inline">Filter</span>
+          <span className="sm:hidden">Filter</span>
           {hasActiveFilters && (
-            <span className="ml-2 w-2 h-2 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full"></span>
+            <span className="ml-1 sm:ml-2 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full"></span>
           )}
         </Button>
         
@@ -95,17 +113,17 @@ const DesktopToolbar = ({
             variant={viewMode === 'grid' ? 'default' : 'ghost'}
             size="sm"
             onClick={() => onViewModeChange('grid')}
-            className={`rounded-r-none ${viewMode === 'grid' ? 'bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white border-0' : 'text-pink-600 hover:bg-pink-50'}`}
+            className={`rounded-r-none px-2 sm:px-3 text-xs sm:text-sm ${viewMode === 'grid' ? 'bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white border-0' : 'text-pink-600 hover:bg-pink-50'}`}
           >
-            <Grid className="h-4 w-4" />
+            <Grid className="h-3 w-3 sm:h-4 sm:w-4" />
           </Button>
           <Button
             variant={viewMode === 'list' ? 'default' : 'ghost'}
             size="sm"
             onClick={() => onViewModeChange('list')}
-            className={`rounded-l-none ${viewMode === 'list' ? 'bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white border-0' : 'text-pink-600 hover:bg-pink-50'}`}
+            className={`rounded-l-none px-2 sm:px-3 text-xs sm:text-sm ${viewMode === 'list' ? 'bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white border-0' : 'text-pink-600 hover:bg-pink-50'}`}
           >
-            <List className="h-4 w-4" />
+            <List className="h-3 w-3 sm:h-4 sm:w-4" />
           </Button>
         </div>
       </div>

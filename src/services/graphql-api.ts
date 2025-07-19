@@ -744,7 +744,7 @@ class GraphQLApiService {
     }
   }
 
-  async getProfile(auth0Id: string): Promise<User> {
+  async getProfile(auth0Id: string): Promise<User | null> {
     try {
       const { data } = await client.query({
         query: GET_USER_PROFILE,

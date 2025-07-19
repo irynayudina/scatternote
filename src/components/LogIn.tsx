@@ -21,21 +21,21 @@ const LogIn = () => {
         
         try {
             const userData = await apiService.getProfile(user.sub!);
-            // User already exists, store data and redirect to home
-            sessionStorage.setItem('user', JSON.stringify(userData));
-            if (user.sub) {
-                sessionStorage.setItem('token', user.sub);
-            }
-            navigate('/home-board');
-        } catch (error: any) {
-            console.error('Error checking existing user:', error);
-            if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+            if (userData) {
+                // User already exists, store data and redirect to home
+                sessionStorage.setItem('user', JSON.stringify(userData));
+                if (user.sub) {
+                    sessionStorage.setItem('token', user.sub);
+                }
+                navigate('/home-board');
+            } else {
                 // User doesn't exist yet, redirect to username selection
                 navigate('/username-selection');
-            } else {
-                // Some other error, redirect to username selection as fallback
-                navigate('/username-selection');
             }
+        } catch (error: any) {
+            console.error('Error checking existing user:', error);
+            // Some other error, redirect to username selection as fallback
+            navigate('/username-selection');
         }
     };
 

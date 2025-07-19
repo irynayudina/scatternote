@@ -549,22 +549,52 @@ const Desktop = () => {
       />
 
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm z-10 border-b border-pink-200">
-        <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text after:content-[''] after:block after:w-full after:h-[1px] after:bg-pink-200 before:content-[''] before:inline-block before:w-6 before:h-6 before:bg-gradient-to-r before:from-pink-400 before:to-purple-400 before:rounded-full before:mr-2">{desktop.name}</h1>
-              <p className="text-gray-600">{desktop.description}</p>
+      <header className="bg-white/90 backdrop-blur-md border-b border-pink-200/50 sticky top-0 z-20">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-3 sm:py-4">
+            {/* Desktop Info */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-gradient-to-r from-pink-400 to-purple-400 rounded-full flex-shrink-0"></div>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text truncate">
+                  {desktop.name}
+                </h1>
+              </div>
+              {desktop.description && (
+                <p className="text-sm text-gray-600 mt-1 truncate max-w-xs sm:max-w-md lg:max-w-lg">
+                  {desktop.description}
+                </p>
+              )}
             </div>
-            <div className="flex items-center space-x-4">
-              <Button onClick={() => navigate('/knowledge-base')} variant="outline" className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400">
-                Knowledge Base
+
+            {/* Navigation Buttons */}
+            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+              <Button 
+                onClick={() => navigate('/knowledge-base')} 
+                variant="outline" 
+                size="sm"
+                className="border-pink-200 text-pink-600 hover:bg-pink-50 hover:border-pink-300 text-xs sm:text-sm px-2 sm:px-3"
+              >
+                <span className="hidden sm:inline">Knowledge Base</span>
+                <span className="sm:hidden">KB</span>
               </Button>
-              <Button onClick={() => navigate('/settings')} variant="outline" className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400">
-                Settings
+              <Button 
+                onClick={() => navigate('/settings')} 
+                variant="outline" 
+                size="sm"
+                className="border-pink-200 text-pink-600 hover:bg-pink-50 hover:border-pink-300 text-xs sm:text-sm px-2 sm:px-3"
+              >
+                <span className="hidden sm:inline">Settings</span>
+                <span className="sm:hidden">⚙️</span>
               </Button>
-              <Button onClick={() => navigate('/home-board')} variant="outline" className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400">
-                Go to Home Board
+              <Button 
+                onClick={() => navigate('/home-board')} 
+                variant="outline" 
+                size="sm"
+                className="border-pink-200 text-pink-600 hover:bg-pink-50 hover:border-pink-300 text-xs sm:text-sm px-2 sm:px-3"
+              >
+                <span className="hidden sm:inline">Home Board</span>
+                <span className="sm:hidden">🏠</span>
               </Button>
             </div>
           </div>
@@ -573,7 +603,7 @@ const Desktop = () => {
 
       {/* Error/Success Message */}
       {error && (
-        <div className={`px-4 py-3 rounded-md mx-4 mt-4 ${
+        <div className={`px-3 sm:px-4 py-2 sm:py-3 rounded-md mx-3 sm:mx-4 mt-3 text-sm ${
           error.includes('✅') 
             ? 'bg-green-50 border border-green-200 text-green-700' 
             : 'bg-red-50 border border-red-200 text-red-700'
@@ -592,8 +622,8 @@ const Desktop = () => {
 
       {/* Desktop Carousel - Only show if there are desktops */}
       {desktops.length > 0 && (
-        <div className="bg-white/60 backdrop-blur-sm border-b border-pink-200 pt-4 pb-6">
-          <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white/70 backdrop-blur-sm border-b border-pink-200/50 pt-3 pb-4">
+          <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
             <div 
               ref={carouselRef}
               className="relative overflow-visible"
@@ -605,14 +635,14 @@ const Desktop = () => {
                 WebkitUserSelect: 'none',
                 MozUserSelect: 'none',
                 msUserSelect: 'none',
-                height: '120px',
+                height: '100px',
                 zIndex: 10,
                 overscrollBehavior: 'none',
                 touchAction: 'pan-y pinch-zoom'
               }}
             >
               <div 
-                className="flex justify-center items-center space-x-8 py-4 transition-all duration-300 ease-out"
+                className="flex justify-center items-center space-x-4 sm:space-x-6 lg:space-x-8 py-3 transition-all duration-300 ease-out"
                 style={{ 
                   userSelect: 'none',
                   WebkitUserSelect: 'none',
@@ -641,8 +671,8 @@ const Desktop = () => {
 
       {/* Main Content - Only show if there are desktops */}
       {desktops.length > 0 && (
-        <main className="bg-white/60 min-h-[calc(100vh-271px)] max-w-[1920px] mx-auto py-6 sm:px-6 lg:px-8">
-          <div className="px-4 py-6 sm:px-0">
+        <main className="bg-white/60 min-h-[calc(100vh-200px)] max-w-7xl mx-auto py-4 sm:py-6">
+          <div className="px-3 sm:px-4 lg:px-6">
             {/* Toolbar */}
             <DesktopToolbar
               onCreateNote={handleCreateNote}
@@ -665,7 +695,7 @@ const Desktop = () => {
               isDragging={isDragging}
               draggedItem={draggedItem}
               onDragStart={handleDragStart}
-                        onDragEnd={handleDragEnd}
+              onDragEnd={handleDragEnd}
             />
 
             {/* Notes Section */}
@@ -682,14 +712,14 @@ const Desktop = () => {
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
               onClearSearchAndFilters={() => {
-                      setSearchQuery('')
-                      const resetFilters: FilterState = {
-                        dateRange: { startDate: '', endDate: '' },
-                        selectedTags: [],
-                        isPinned: null
-                      }
-                      setFilters(resetFilters)
-                    }} 
+                setSearchQuery('')
+                const resetFilters: FilterState = {
+                  dateRange: { startDate: '', endDate: '' },
+                  selectedTags: [],
+                  isPinned: null
+                }
+                setFilters(resetFilters)
+              }} 
             />
           </div>
         </main>
