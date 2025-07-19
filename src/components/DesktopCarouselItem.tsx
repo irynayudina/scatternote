@@ -53,7 +53,7 @@ const DesktopCarouselItem = ({
       }}
     >
       <div
-        className={`w-12 h-12 sm:w-16 sm:h-16 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${bgColor} ${
+        className={`w-8 h-8 sm:w-8 sm:h-8 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${bgColor} ${
         isDragModeEnabled ? 'ring-2 ring-pink-300 ring-opacity-30' : ''
       }`}
         style={{
@@ -76,7 +76,7 @@ const DesktopCarouselItem = ({
         </span>
       </div>
       <span 
-        className={`text-xs mt-1.5 sm:mt-2 font-medium transition-all duration-300 max-w-16 sm:max-w-20 lg:max-w-24 truncate ${textColor}`}
+        className={`text-xs mt-1.5 sm:mt-2 font-medium transition-all duration-300 max-w-10 sm:max-w-16 lg:max-w-20 truncate ${textColor}`}
         style={{
           userSelect: 'none',
           WebkitUserSelect: 'none',

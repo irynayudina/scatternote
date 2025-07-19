@@ -561,7 +561,7 @@ const Desktop = () => {
                 </h1>
               </div>
               {desktop.description && (
-                <p className="text-sm text-gray-600 mt-1 truncate max-w-xs sm:max-w-md lg:max-w-lg">
+                <p className="text-sm text-gray-600 mt-1 truncate max-w-xs sm:max-w-md lg:max-w-lg text-left">
                   {desktop.description}
                 </p>
               )}
