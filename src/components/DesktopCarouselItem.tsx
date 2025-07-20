@@ -1,4 +1,5 @@
 import type { Desktop as DesktopType } from "@/services/api"
+import { useState } from "react"
 
 interface DesktopCarouselItemProps {
   desktop: DesktopType
@@ -21,26 +22,30 @@ const DesktopCarouselItem = ({
   onDragLeave,
   onDrop
 }: DesktopCarouselItemProps) => {
+  const [isHovered, setIsHovered] = useState(false)
+  
   // Determine scale and styling based on state
   let scale = 1
   let bgColor = 'bg-gray-100 border-gray-300 text-gray-600'
-  let textColor = 'text-gray-500 bg-pink-100 p-1.5 sm:p-2 rounded-md truncate'
+  let tooltipColor = 'text-gray-500 bg-pink-100'
   
   if (isActive) {
     scale = 1.15
     bgColor = 'bg-gradient-to-br from-pink-500 via-purple-500 to-pink-500 border-pink-600 text-white'
-    textColor = 'text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text'
+    tooltipColor = 'text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text'
   }
   
   return (
     <div
-      className={`flex flex-col items-center transition-all duration-300 cursor-pointer ${
+      className={`flex flex-col items-center transition-all duration-300 cursor-pointer relative ${
         isActive ? 'scale-110 sm:scale-125' : 'scale-100 opacity-60 hover:opacity-80'
       } ${isDragOver ? 'ring-2 sm:ring-4 ring-pink-400 ring-opacity-50' : ''}`}
       onClick={onClick}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       style={{
         transform: `scale(${scale})`,
         opacity: isActive ? 1 : 0.6,
@@ -75,17 +80,22 @@ const DesktopCarouselItem = ({
           {desktop.name.charAt(0).toUpperCase()}
         </span>
       </div>
-      <span 
-        className={`text-xs mt-1.5 sm:mt-2 font-medium transition-all duration-300 max-w-10 sm:max-w-16 lg:max-w-20 truncate ${textColor}`}
-        style={{
-          userSelect: 'none',
-          WebkitUserSelect: 'none',
-          MozUserSelect: 'none',
-          msUserSelect: 'none'
-        }}
-      >
-        {desktop.name}
-      </span>
+      
+      {/* Custom Tooltip */}
+      {isHovered && !isActive && (
+        <div
+          className={`absolute bottom-full mb-1 px-2 py-1 rounded-md text-xs font-medium transition-all duration-300 max-w-15 sm:max-w-60 truncate ${tooltipColor} z-50`}
+          style={{
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
+            MozUserSelect: 'none',
+            msUserSelect: 'none',
+            pointerEvents: 'none'
+          }}
+        >
+          {desktop.name}
+        </div>
+      )}
     </div>
   )
 }

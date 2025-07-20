@@ -66,6 +66,9 @@ const Desktop = () => {
   const [touchStartX, setTouchStartX] = useState(0)
   const [touchStartY, setTouchStartY] = useState(0)
   const [isSwiping, setIsSwiping] = useState(false)
+  
+  // Carousel visibility state
+  const [isCarouselVisible, setIsCarouselVisible] = useState(false)
 
   useEffect(() => {
     // Check if user is logged in
@@ -550,8 +553,8 @@ const Desktop = () => {
 
       {/* Header */}
       <header className="bg-white/90 backdrop-blur-md border-b border-pink-200/50 sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-3 sm:py-4">
+        <div className="max-w-10xl mx-auto px-3 sm:px-4 lg:px-6">
+          <div className="flex flex-col min-[450px]:flex-row sm:items-center sm:justify-between gap-3 py-3 sm:py-4">
             {/* Desktop Info */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
@@ -567,8 +570,32 @@ const Desktop = () => {
               )}
             </div>
 
+            {/* Carousel Toggle Button */}
+            <div className="flex items-center justify-center flex-1">
+              <button
+                onMouseEnter={() => setIsCarouselVisible(true)}
+                // onMouseLeave={() => setIsCarouselVisible(false)}
+                className="p-2 rounded-lg hover:bg-pink-50 transition-colors duration-200"
+                title="Toggle Desktop Carousel"
+              >
+                <svg width="30" height="9" viewBox="0 0 100 30" xmlns="http://www.w3.org/2000/svg" className="w-8 h-2.5">
+                  {/* Line through center */}
+                  <line x1="10" y1="15" x2="90" y2="15" stroke="currentColor" strokeWidth="2" className="text-gray-600" />
+                  
+                  {/* Left circle */}
+                  <circle cx="30" cy="15" r="6" fill="currentColor" className="text-gray-600" />
+
+                  {/* Middle (25% bigger) */}
+                  <circle cx="50" cy="15" r="7.5" fill="currentColor" className="text-gray-600" />
+
+                  {/* Right circle */}
+                  <circle cx="70" cy="15" r="6" fill="currentColor" className="text-gray-600" />
+                </svg>
+              </button>
+            </div>
+
             {/* Navigation Buttons */}
-            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            <div className="flex items-center justify-center sm:justify-end gap-2 sm:gap-3 flex-shrink-0">
               <Button 
                 onClick={() => navigate('/knowledge-base')} 
                 variant="outline" 
@@ -620,49 +647,82 @@ const Desktop = () => {
         />
       )}
 
-      {/* Desktop Carousel - Only show if there are desktops */}
-      {desktops.length > 0 && (
-        <div className="bg-white/70 backdrop-blur-sm border-b border-pink-200/50 pt-3 pb-4">
-          <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
-            <div 
-              ref={carouselRef}
-              className="relative overflow-visible"
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-              style={{ 
-                userSelect: 'none',
-                WebkitUserSelect: 'none',
-                MozUserSelect: 'none',
-                msUserSelect: 'none',
-                height: '100px',
-                zIndex: 10,
-                overscrollBehavior: 'none',
-                touchAction: 'pan-y pinch-zoom'
-              }}
-            >
+      {/* Desktop Carousel - Only show if there are desktops and carousel is visible */}
+      {desktops.length > 0 && isCarouselVisible && (
+        <div 
+          className="bg-white/70 backdrop-blur-sm border-b animate-in slide-in-from-top-2 duration-300 border-b-[1px] border-transparent"
+          style={{
+            borderImage: "linear-gradient(to right, #a78bfa, #ec4899) 1",
+            // #a78bfa (purple-400), #ec4899 (pink-500)
+          }}
+          onMouseEnter={() => setIsCarouselVisible(true)}
+          // onMouseLeave={() => setIsCarouselVisible(false)}
+        >
+          <div className="max-w-10xl mx-auto px-[40px] sm:px-[60px]">
+          {/* <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6"> */}
+            {/* Left Decorative Element */}
+            <div className="absolute left-0 sm:left-1 top-1/2 transform -translate-y-1/2 z-10 px-1">
+              <svg width="60" height="15" viewBox="0 0 90 20" xmlns="http://www.w3.org/2000/svg" className="text-gray-400 w-[30px] sm:w-[45px]">
+                {/* Line */}
+                <line x1="0" y1="10" x2="60" y2="10" stroke="currentColor" strokeWidth="2" />
+                
+                {/* Unfilled circle at the end */}
+                <circle cx="70" cy="10" r="10" fill="none" stroke="currentColor" strokeWidth="2" />
+              </svg>
+            </div>
+
+            {/* Right Decorative Element */}
+            <div className="absolute right-0 sm:right-1 top-1/2 transform -translate-y-1/2 z-10 px-1">
+              <svg width="60" height="15" viewBox="0 0 90 20" xmlns="http://www.w3.org/2000/svg" className="text-gray-400 transform scale-x-[-1] w-[30px] sm:w-[45px]">
+                {/* Line */}
+                <line x1="0" y1="10" x2="60" y2="10" stroke="currentColor" strokeWidth="2" />
+                
+                {/* Unfilled circle at the end */}
+                <circle cx="70" cy="10" r="10" fill="none" stroke="currentColor" strokeWidth="2" />
+              </svg>
+            </div>
+
+            {/* Carousel Wrapper with Fixed Width */}
+            <div className="relative mx-auto overflow-hidden">
               <div 
-                className="flex justify-center items-center space-x-4 sm:space-x-6 lg:space-x-8 py-3 transition-all duration-300 ease-out"
+                ref={carouselRef}
+                className="relative overflow-visible"
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
                 style={{ 
                   userSelect: 'none',
                   WebkitUserSelect: 'none',
                   MozUserSelect: 'none',
-                  msUserSelect: 'none'
+                  msUserSelect: 'none',
+                  zIndex: 10,
+                  overscrollBehavior: 'none',
+                  touchAction: 'pan-y pinch-zoom'
                 }}
               >
-                {getRearrangedDesktops().map((desktopItem) => (
-                  <DesktopCarouselItem
-                    key={desktopItem.id}
-                    desktop={desktopItem}
-                    isActive={desktopItem.id === activeDesktopId}
-                    isDragModeEnabled={isDragModeEnabled}
-                    isDragOver={dragOverDesktop === desktopItem.id}
-                    onClick={() => handleDesktopChange(desktopItem.id)}
-                    onDragOver={(e) => handleDragOver(e, desktopItem.id)}
-                    onDragLeave={handleDragLeave}
-                    onDrop={(e) => handleDrop(e, desktopItem.id)}
-                  />
-                ))}
+                <div 
+                  className="flex justify-center items-center space-x-2 sm:space-x-6 lg:space-x-8 px-2 pt-6 pb-4 transition-all duration-300 ease-out"
+                  style={{ 
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none',
+                    MozUserSelect: 'none',
+                    msUserSelect: 'none'
+                  }}
+                >
+                  {getRearrangedDesktops().map((desktopItem) => (
+                    <DesktopCarouselItem
+                      key={desktopItem.id}
+                      desktop={desktopItem}
+                      isActive={desktopItem.id === activeDesktopId}
+                      isDragModeEnabled={isDragModeEnabled}
+                      isDragOver={dragOverDesktop === desktopItem.id}
+                      onClick={() => handleDesktopChange(desktopItem.id)}
+                      onDragOver={(e) => handleDragOver(e, desktopItem.id)}
+                      onDragLeave={handleDragLeave}
+                      onDrop={(e) => handleDrop(e, desktopItem.id)}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -671,7 +731,7 @@ const Desktop = () => {
 
       {/* Main Content - Only show if there are desktops */}
       {desktops.length > 0 && (
-        <main className="bg-white/60 min-h-[calc(100vh-200px)] max-w-7xl mx-auto py-4 sm:py-6">
+        <main className="bg-white/60 min-h-[calc(100vh-200px)] max-w-10xl mx-auto py-4 sm:py-6">
           <div className="px-3 sm:px-4 lg:px-6">
             {/* Toolbar */}
             <DesktopToolbar
