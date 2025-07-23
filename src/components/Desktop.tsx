@@ -69,6 +69,32 @@ const Desktop = () => {
   
   // Carousel visibility state
   const [isCarouselVisible, setIsCarouselVisible] = useState(false)
+  const [isMouseOverCarousel, setIsMouseOverCarousel] = useState(false)
+  const hideCarouselTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Debounced function to hide carousel
+  const debouncedHideCarousel = useCallback(() => {
+    // Clear any existing timeout
+    if (hideCarouselTimeoutRef.current) {
+      clearTimeout(hideCarouselTimeoutRef.current)
+    }
+    
+    // Set new timeout to hide carousel after 500ms
+    hideCarouselTimeoutRef.current = setTimeout(() => {
+      if (!isMouseOverCarousel) {
+        setIsCarouselVisible(false)
+      }
+    }, 500)
+  }, [isMouseOverCarousel])
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hideCarouselTimeoutRef.current) {
+        clearTimeout(hideCarouselTimeoutRef.current)
+      }
+    }
+  }, [])
 
   useEffect(() => {
     // Check if user is logged in
@@ -552,7 +578,20 @@ const Desktop = () => {
       />
 
       {/* Header */}
-      <header className="bg-white/90 backdrop-blur-md border-b border-pink-200/50 sticky top-0 z-20">
+      <header 
+        className="bg-white/90 backdrop-blur-md border-b border-pink-200/50 sticky top-0 z-20"
+        onMouseEnter={() => {
+          // Clear any pending hide timeout
+          if (hideCarouselTimeoutRef.current) {
+            clearTimeout(hideCarouselTimeoutRef.current)
+            hideCarouselTimeoutRef.current = null
+          }
+          setIsCarouselVisible(true)
+        }}
+        onMouseLeave={() => {
+          debouncedHideCarousel()
+        }}
+      >
         <div className="max-w-10xl mx-auto px-3 sm:px-4 lg:px-6">
           <div className="flex flex-col min-[450px]:flex-row sm:items-center sm:justify-between gap-3 py-3 sm:py-4">
             {/* Desktop Info */}
@@ -570,11 +609,10 @@ const Desktop = () => {
               )}
             </div>
 
-            {/* Carousel Toggle Button */}
-            <div className="flex items-center justify-center flex-1">
+            {/* Carousel Toggle Button - Mobile Only */}
+            <div className="flex items-center justify-center flex-1 sm:hidden">
               <button
-                onMouseEnter={() => setIsCarouselVisible(true)}
-                // onMouseLeave={() => setIsCarouselVisible(false)}
+                onClick={() => setIsCarouselVisible(!isCarouselVisible)}
                 className="p-2 rounded-lg hover:bg-pink-50 transition-colors duration-200"
                 title="Toggle Desktop Carousel"
               >
@@ -650,13 +688,25 @@ const Desktop = () => {
       {/* Desktop Carousel - Only show if there are desktops and carousel is visible */}
       {desktops.length > 0 && isCarouselVisible && (
         <div 
-          className="bg-white/70 backdrop-blur-sm border-b animate-in slide-in-from-top-2 duration-300 border-b-[1px] border-transparent"
+          className="bg-white/70 backdrop-blur-sm border-b border-b-[1px] border-transparent transition-all duration-400 ease-out"
           style={{
             borderImage: "linear-gradient(to right, #a78bfa, #ec4899) 1",
             // #a78bfa (purple-400), #ec4899 (pink-500)
+            transform: isCarouselVisible ? 'translateY(0)' : 'translateY(-5px)',
+            opacity: isCarouselVisible ? 1 : 0,
           }}
-          onMouseEnter={() => setIsCarouselVisible(true)}
-          // onMouseLeave={() => setIsCarouselVisible(false)}
+          onMouseEnter={() => {
+            setIsMouseOverCarousel(true)
+            // Clear any pending hide timeout
+            if (hideCarouselTimeoutRef.current) {
+              clearTimeout(hideCarouselTimeoutRef.current)
+              hideCarouselTimeoutRef.current = null
+            }
+          }}
+          onMouseLeave={() => {
+            setIsMouseOverCarousel(false)
+            setIsCarouselVisible(false)
+          }}
         >
           <div className="max-w-10xl mx-auto px-[40px] sm:px-[60px]">
           {/* <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6"> */}
@@ -701,12 +751,14 @@ const Desktop = () => {
                 }}
               >
                 <div 
-                  className="flex justify-center items-center space-x-2 sm:space-x-6 lg:space-x-8 px-2 pt-6 pb-4 transition-all duration-300 ease-out"
+                  className="flex justify-center items-center space-x-2 sm:space-x-6 lg:space-x-8 px-2 pt-6 pb-4 transition-all duration-500 ease-out"
                   style={{ 
                     userSelect: 'none',
                     WebkitUserSelect: 'none',
                     MozUserSelect: 'none',
-                    msUserSelect: 'none'
+                    msUserSelect: 'none',
+                    transform: isCarouselVisible ? 'translateY(0)' : 'translateY(-10px)',
+                    opacity: isCarouselVisible ? 1 : 0,
                   }}
                 >
                   {getRearrangedDesktops().map((desktopItem) => (
