@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { useAuth0 } from '@auth0/auth0-react';
@@ -8,16 +8,35 @@ import EditDesktopsModal from './EditDesktopsModal'
 import LogoutButton from './LogoutButton'
 import { apiService } from '../services/api'
 import type { Desktop, User } from '../services/api'
+import { 
+  useUserStore, 
+  useDesktopStore, 
+  useUIStore 
+} from '@/stores'
 
 const HomeBoard = () => {
   const navigate = useNavigate()
   const { user: auth0User, isAuthenticated, isLoading: auth0Loading } = useAuth0()
-  const [user, setUser] = useState<User | null>(null)
-  const [desktops, setDesktops] = useState<Desktop[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [isCreateNoteModalOpen, setIsCreateNoteModalOpen] = useState(false)
-  const [isEditDesktopsModalOpen, setIsEditDesktopsModalOpen] = useState(false)
+  
+  // User store
+  const user = useUserStore((state) => state.user)
+  const setUser = useUserStore((state) => state.setUser)
+  
+  // Desktop store
+  const desktops = useDesktopStore((state) => state.desktops)
+  const desktopLoading = useDesktopStore((state) => state.isLoading)
+  const fetchDesktops = useDesktopStore((state) => state.fetchDesktops)
+  const refreshDesktops = useDesktopStore((state) => state.refreshDesktops)
+  
+  // UI store
+  const isCreateModalOpen = useUIStore((state) => state.isCreateDesktopModalOpen)
+  const isCreateNoteModalOpen = useUIStore((state) => state.isCreateNoteModalOpen)
+  const isEditDesktopsModalOpen = useUIStore((state) => state.isEditDesktopsModalOpen)
+  const setCreateModalOpen = useUIStore((state) => state.setCreateDesktopModalOpen)
+  const setCreateNoteModalOpen = useUIStore((state) => state.setCreateNoteModalOpen)
+  const setEditDesktopsModalOpen = useUIStore((state) => state.setEditDesktopsModalOpen)
+  
+  const isLoading = desktopLoading
 
   useEffect(() => {
     if (auth0Loading) return;
@@ -34,7 +53,7 @@ const HomeBoard = () => {
       try {
         const parsedUser = JSON.parse(userData)
         setUser(parsedUser)
-        loadDesktops(parsedUser.id)
+        fetchDesktops(parsedUser.id)
       } catch (error) {
         console.error('Error parsing user data:', error)
         // If session data is corrupted, try to get user from backend
@@ -44,9 +63,7 @@ const HomeBoard = () => {
       // No session data, try to get user from backend
       fetchUserFromBackend()
     }
-    
-    setIsLoading(false)
-  }, [auth0User, isAuthenticated, auth0Loading, navigate])
+  }, [auth0User, isAuthenticated, auth0Loading, navigate, setUser, fetchDesktops])
 
   const fetchUserFromBackend = async () => {
     if (!auth0User) return;
@@ -67,55 +84,43 @@ const HomeBoard = () => {
         sessionStorage.setItem('token', auth0User.sub);
       }
       setUser(userData);
-      loadDesktops(userData.id)
+      fetchDesktops(userData.id)
     } catch (error) {
       console.error('Error fetching user:', error);
     }
   }
 
-  const loadDesktops = async (userId: number) => {
-    try {
-      const desktopsData = await apiService.getDesktops(userId)
-      setDesktops(desktopsData)
-    } catch (error) {
-      console.error('Error loading desktops:', error)
-    }
-  }
-
   const handleCreateDesktop = () => {
-    setIsCreateModalOpen(true)
+    setCreateModalOpen(true)
   }
 
   const handleDesktopCreated = async () => {
-    // Refresh desktop data after creation
+    // Refresh desktop data after creation - store handles cache invalidation
     if (user) {
-      await loadDesktops(user.id)
+      await refreshDesktops(user.id)
     }
-    console.log('Desktop created successfully')
   }
 
   const handleCreateNote = () => {
-    setIsCreateNoteModalOpen(true)
+    setCreateNoteModalOpen(true)
   }
 
   const handleNoteCreated = async () => {
-    // Refresh desktop data after note creation
+    // Refresh desktop data after note creation - store handles cache invalidation
     if (user) {
-      await loadDesktops(user.id)
+      await refreshDesktops(user.id)
     }
-    console.log('Note created successfully')
   }
 
   const handleEditDesktops = () => {
-    setIsEditDesktopsModalOpen(true)
+    setEditDesktopsModalOpen(true)
   }
 
   const handleDesktopsUpdated = async () => {
-    // Refresh desktop data after editing
+    // Refresh desktop data after editing - store handles cache invalidation
     if (user) {
-      await loadDesktops(user.id)
+      await refreshDesktops(user.id)
     }
-    console.log('Desktops updated successfully')
   }
 
   if (auth0Loading || isLoading) {
@@ -138,7 +143,7 @@ const HomeBoard = () => {
       {/* Create Desktop Modal */}
       <CreateDesktopModal
         isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
+        onClose={() => setCreateModalOpen(false)}
         userId={user?.id || 0}
         onDesktopCreated={handleDesktopCreated}
       />
@@ -146,7 +151,7 @@ const HomeBoard = () => {
       {/* Create Note Modal */}
       <CreateNoteModalWithDesktop
         isOpen={isCreateNoteModalOpen}
-        onClose={() => setIsCreateNoteModalOpen(false)}
+        onClose={() => setCreateNoteModalOpen(false)}
         userId={user?.id || 0}
         desktops={desktops}
         onNoteCreated={handleNoteCreated}
@@ -155,7 +160,7 @@ const HomeBoard = () => {
       {/* Edit Desktops Modal */}
       <EditDesktopsModal
         isOpen={isEditDesktopsModalOpen}
-        onClose={() => setIsEditDesktopsModalOpen(false)}
+        onClose={() => setEditDesktopsModalOpen(false)}
         desktops={desktops}
         onDesktopsUpdated={handleDesktopsUpdated}
       />

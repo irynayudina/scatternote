@@ -20,7 +20,42 @@ const authLink = setContext((_, { headers }) => {
 
 export const client = new ApolloClient({
   link: authLink.concat(httpLink),
-  cache: new InMemoryCache()
+  cache: new InMemoryCache({
+    typePolicies: {
+      Query: {
+        fields: {
+          desktops: {
+            merge(existing = [], incoming: any[]) {
+              return incoming;
+            },
+          },
+          notes: {
+            merge(existing = [], incoming: any[]) {
+              return incoming;
+            },
+          },
+          roadmaps: {
+            merge(existing = [], incoming: any[]) {
+              return incoming;
+            },
+          },
+        },
+      },
+    },
+  }),
+  defaultOptions: {
+    watchQuery: {
+      fetchPolicy: 'cache-and-network',
+      errorPolicy: 'all',
+    },
+    query: {
+      fetchPolicy: 'network-only',
+      errorPolicy: 'all',
+    },
+    mutate: {
+      errorPolicy: 'all',
+    },
+  },
 });
 
 // Type definitions (matching the backend entities)

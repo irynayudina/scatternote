@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from "react"
+import { useEffect, useRef, useCallback, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import CreateNoteModal from "./CreateNoteModal"
@@ -15,61 +15,97 @@ import EmptyDesktopState from "./EmptyDesktopState"
 import type { FilterState } from "./FilterModal"
 import { apiService } from "@/services/api"
 import type { Note, Desktop as DesktopType, Roadmap } from "@/services/api"
-
-interface UserData {
-  id: number
-  username: string
-  email: string
-  token: string
-  role: string
-  createdAt: string
-}
+import { 
+  useUserStore, 
+  useDesktopStore, 
+  useNotesStore, 
+  useRoadmapsStore, 
+  useUIStore 
+} from "@/stores"
 
 const Desktop = () => {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
-  const [user, setUser] = useState<UserData | null>(null)
-  const [desktop, setDesktop] = useState<DesktopType | null>(null)
-  const [notes, setNotes] = useState<Note[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-  const [searchQuery, setSearchQuery] = useState('')
-  const [activeDesktopId, setActiveDesktopId] = useState<number>(1)
-  const [desktops, setDesktops] = useState<DesktopType[]>([])
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [isCreateDesktopModalOpen, setIsCreateDesktopModalOpen] = useState(false)
-  const [selectedNote, setSelectedNote] = useState<Note | null>(null)
-  const [isNoteViewerOpen, setIsNoteViewerOpen] = useState(false)
-  const [roadmaps, setRoadmaps] = useState<Roadmap[]>([])
-  const [selectedRoadmap, setSelectedRoadmap] = useState<Roadmap | null>(null)
-  const [isRoadmapViewerOpen, setIsRoadmapViewerOpen] = useState(false)
-  const [isCreateRoadmapModalOpen, setIsCreateRoadmapModalOpen] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   
-  // Filter state
-  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
-  const [filters, setFilters] = useState<FilterState>({
-    dateRange: { startDate: '', endDate: '' },
-    selectedTags: [],
-    isPinned: null
-  })
-  const [allNotes, setAllNotes] = useState<Note[]>([]) // Store all notes for client-side filtering
-
-  // Drag and drop state
-  const [draggedItem, setDraggedItem] = useState<{ type: 'note' | 'roadmap', id: number, title: string } | null>(null)
-  const [isDragging, setIsDragging] = useState(false)
-  const [dragOverDesktop, setDragOverDesktop] = useState<number | null>(null)
-  const [isDragModeEnabled, setIsDragModeEnabled] = useState(false)
-
-  // Carousel state
-  const carouselRef = useRef<HTMLDivElement>(null)
+  // User store
+  const user = useUserStore((state) => state.user)
+  const setUser = useUserStore((state) => state.setUser)
+  const setUserLoading = useUserStore((state) => state.setLoading)
+  
+  // Desktop store
+  const desktops = useDesktopStore((state) => state.desktops)
+  const desktop = useDesktopStore((state) => state.currentDesktop)
+  const desktopLoading = useDesktopStore((state) => state.isLoading)
+  const desktopError = useDesktopStore((state) => state.error)
+  const fetchDesktops = useDesktopStore((state) => state.fetchDesktops)
+  const fetchDesktop = useDesktopStore((state) => state.fetchDesktop)
+  const refreshDesktops = useDesktopStore((state) => state.refreshDesktops)
+  
+  // Notes store
+  const notes = useNotesStore((state) => state.notes)
+  const selectedNote = useNotesStore((state) => state.currentNote)
+  const notesLoading = useNotesStore((state) => state.isLoading)
+  const notesError = useNotesStore((state) => state.error)
+  const filters = useNotesStore((state) => state.filters)
+  const searchQuery = useNotesStore((state) => state.searchQuery)
+  const fetchNotes = useNotesStore((state) => state.fetchNotes)
+  const setCurrentNote = useNotesStore((state) => state.setCurrentNote)
+  const setFilters = useNotesStore((state) => state.setFilters)
+  const setSearchQuery = useNotesStore((state) => state.setSearchQuery)
+  const refreshNotes = useNotesStore((state) => state.refreshNotes)
+  const clearFilters = useNotesStore((state) => state.clearFilters)
+  const setCurrentDesktopId = useNotesStore((state) => state.setCurrentDesktopId)
+  
+  // Roadmaps store
+  const roadmaps = useRoadmapsStore((state) => state.roadmaps)
+  const selectedRoadmap = useRoadmapsStore((state) => state.currentRoadmap)
+  const roadmapsLoading = useRoadmapsStore((state) => state.isLoading)
+  const roadmapsError = useRoadmapsStore((state) => state.error)
+  const fetchRoadmaps = useRoadmapsStore((state) => state.fetchRoadmaps)
+  const setCurrentRoadmap = useRoadmapsStore((state) => state.setCurrentRoadmap)
+  const refreshRoadmaps = useRoadmapsStore((state) => state.refreshRoadmaps)
+  
+  // UI store
+  const viewMode = useUIStore((state) => state.viewMode)
+  const activeDesktopId = useUIStore((state) => state.activeDesktopId)
+  const isCreateNoteModalOpen = useUIStore((state) => state.isCreateNoteModalOpen)
+  const isCreateDesktopModalOpen = useUIStore((state) => state.isCreateDesktopModalOpen)
+  const isCreateRoadmapModalOpen = useUIStore((state) => state.isCreateRoadmapModalOpen)
+  const isFilterModalOpen = useUIStore((state) => state.isFilterModalOpen)
+  const isNoteViewerOpen = useUIStore((state) => state.isNoteViewerOpen)
+  const isRoadmapViewerOpen = useUIStore((state) => state.isRoadmapViewerOpen)
+  const draggedItem = useUIStore((state) => state.draggedItem)
+  const isDragging = useUIStore((state) => state.isDragging)
+  const dragOverDesktop = useUIStore((state) => state.dragOverDesktop)
+  const isDragModeEnabled = useUIStore((state) => state.isDragModeEnabled)
+  const isCarouselVisible = useUIStore((state) => state.isCarouselVisible)
+  const isMouseOverCarousel = useUIStore((state) => state.isMouseOverCarousel)
+  const setViewMode = useUIStore((state) => state.setViewMode)
+  const setActiveDesktopId = useUIStore((state) => state.setActiveDesktopId)
+  const setCreateNoteModalOpen = useUIStore((state) => state.setCreateNoteModalOpen)
+  const setCreateDesktopModalOpen = useUIStore((state) => state.setCreateDesktopModalOpen)
+  const setCreateRoadmapModalOpen = useUIStore((state) => state.setCreateRoadmapModalOpen)
+  const setFilterModalOpen = useUIStore((state) => state.setFilterModalOpen)
+  const setNoteViewerOpen = useUIStore((state) => state.setNoteViewerOpen)
+  const setRoadmapViewerOpen = useUIStore((state) => state.setRoadmapViewerOpen)
+  const setDraggedItem = useUIStore((state) => state.setDraggedItem)
+  const setIsDragging = useUIStore((state) => state.setIsDragging)
+  const setDragOverDesktop = useUIStore((state) => state.setDragOverDesktop)
+  const setIsDragModeEnabled = useUIStore((state) => state.setIsDragModeEnabled)
+  const setCarouselVisible = useUIStore((state) => state.setCarouselVisible)
+  const setMouseOverCarousel = useUIStore((state) => state.setMouseOverCarousel)
+  
+  // Local state for touch/swipe
   const [touchStartX, setTouchStartX] = useState(0)
   const [touchStartY, setTouchStartY] = useState(0)
   const [isSwiping, setIsSwiping] = useState(false)
   
-  // Carousel visibility state
-  const [isCarouselVisible, setIsCarouselVisible] = useState(false)
-  const [isMouseOverCarousel, setIsMouseOverCarousel] = useState(false)
+  // Combined error state
+  const error = desktopError || notesError || roadmapsError
+  const isLoading = desktopLoading || notesLoading || roadmapsLoading
+  
+  // Carousel ref
+  const carouselRef = useRef<HTMLDivElement>(null)
   const hideCarouselTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Debounced function to hide carousel
@@ -81,11 +117,11 @@ const Desktop = () => {
     
     // Set new timeout to hide carousel after 500ms
     hideCarouselTimeoutRef.current = setTimeout(() => {
-      if (!isMouseOverCarousel) {
-        setIsCarouselVisible(false)
+      if (!useUIStore.getState().isMouseOverCarousel) {
+        setCarouselVisible(false)
       }
     }, 500)
-  }, [isMouseOverCarousel])
+  }, [setCarouselVisible])
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -109,184 +145,122 @@ const Desktop = () => {
     try {
       const parsedUser = JSON.parse(userData)
       setUser(parsedUser)
-      loadDesktopData(parsedUser.id, parseInt(id || '1'))
-      loadDesktops(parsedUser.id)
+      
+      const desktopId = parseInt(id || '1')
+      setActiveDesktopId(desktopId)
+      
+      // Load data using stores
+      Promise.all([
+        fetchDesktops(parsedUser.id),
+        fetchDesktop(desktopId, parsedUser.id),
+        fetchNotes(parsedUser.id, desktopId),
+        fetchRoadmaps(parsedUser.id, desktopId),
+      ]).then(() => {
+        setCurrentDesktopId(desktopId)
+      }).catch((error) => {
+        console.error('Error loading data:', error)
+        navigate('/')
+      })
     } catch (error) {
       console.error('Error parsing user data:', error)
       navigate('/')
-    } finally {
-      setIsLoading(false)
     }
-  }, [navigate, id])
+  }, [navigate, id, setUser, fetchDesktops, fetchDesktop, fetchNotes, fetchRoadmaps, setActiveDesktopId, setCurrentDesktopId])
 
 
 
-  const loadDesktops = async (userId: number) => {
-    try {
-      setError(null)
-      const desktopsData = await apiService.getDesktops(userId)
-      setDesktops(desktopsData)
-      
-      // Set active desktop ID if not already set or if current desktop doesn't exist
-      if (!activeDesktopId || !desktopsData.find(d => d.id === activeDesktopId)) {
-        const defaultDesktopId = desktopsData.length > 0 ? desktopsData[0].id : 1
-        setActiveDesktopId(defaultDesktopId)
-      }
-    } catch (error) {
-      console.error('Error loading desktops:', error)
-      setError('Failed to load desktops')
-    }
-  }
-
-  const loadDesktopData = async (userId: number, desktopId: number) => {
-    try {
-      setError(null)
-      const desktopData = await apiService.getDesktop(desktopId, userId)
-      setDesktop(desktopData)
-      
-      // Load notes for this desktop
-      const notesData = await apiService.getNotes(userId, desktopId)
-      setAllNotes(notesData) // Store all notes for filtering
-      setNotes(notesData)
-
-      // Load roadmaps for this desktop
-      const roadmapsData = await apiService.getRoadmaps(userId, desktopId)
-      setRoadmaps(roadmapsData)
-    } catch (error) {
-      console.error('Error loading desktop data:', error)
-      setError('Failed to load desktop data')
-    }
-  }
+  // Load data handlers - now using stores
 
   const handleCreateNote = () => {
-    setIsCreateModalOpen(true)
+    setCreateNoteModalOpen(true)
   }
 
   const handleNoteCreated = async () => {
-    // Refresh notes after creation
+    // Refresh notes after creation - store handles cache invalidation
     if (user) {
-      await loadDesktopData(user.id, parseInt(id || '1'))
+      await refreshNotes(user.id, parseInt(id || '1'))
     }
   }
 
   const handleNoteClick = (note: Note) => {
-    setSelectedNote(note)
-    setIsNoteViewerOpen(true)
+    setCurrentNote(note)
+    setNoteViewerOpen(true)
   }
 
   const handleNoteUpdated = async () => {
-    // Refresh notes after update
+    // Refresh notes after update - store handles cache invalidation
     if (user) {
-      await loadDesktopData(user.id, parseInt(id || '1'))
+      await refreshNotes(user.id, parseInt(id || '1'))
     }
   }
 
   const handleNoteDeleted = async () => {
-    // Refresh notes after deletion
+    // Refresh notes after deletion - store handles cache invalidation
     if (user) {
-      await loadDesktopData(user.id, parseInt(id || '1'))
+      await refreshNotes(user.id, parseInt(id || '1'))
     }
   }
 
   const handleDesktopChange = async (desktopId: number) => {
+    if (!user) return
+    
     setActiveDesktopId(desktopId)
     // Reset filters when switching desktops
-    const resetFilters: FilterState = {
-      dateRange: { startDate: '', endDate: '' },
-      selectedTags: [],
-      isPinned: null
-    }
-    setFilters(resetFilters)
+    clearFilters()
+    setSearchQuery('')
+    setCurrentDesktopId(desktopId)
+    
+    // Load new desktop data
+    await Promise.all([
+      fetchDesktop(desktopId, user.id),
+      fetchNotes(user.id, desktopId),
+      fetchRoadmaps(user.id, desktopId),
+    ])
+    
     navigate(`/desktop/${desktopId}`)
   }
 
 
 
-  // Handle search with API
-  const handleSearch = async (query: string) => {
+  // Handle search - store handles filtering automatically
+  useEffect(() => {
     if (!user) return
     
-    try {
-      setError(null)
-      if (query.trim()) {
-        const searchResults = await apiService.searchNotes(user.id, query)
-        setAllNotes(searchResults) // Store search results for filtering
-        setNotes(searchResults)
-      } else {
-        // If search is empty, load notes for current desktop
-        await loadDesktopData(user.id, parseInt(id || '1'))
-      }
-    } catch (error) {
-      console.error('Error searching notes:', error)
-      setError('Failed to search notes')
-    }
-  }
-
-  // Apply filters to notes
-  const applyFilters = (filterState: FilterState) => {
-    setFilters(filterState)
-    
-    let filteredResults = [...allNotes]
-    
-    // Apply date range filter
-    if (filterState.dateRange.startDate || filterState.dateRange.endDate) {
-      filteredResults = filteredResults.filter(note => {
-        const noteDate = new Date(note.updatedAt)
-        const startDate = filterState.dateRange.startDate ? new Date(filterState.dateRange.startDate) : null
-        const endDate = filterState.dateRange.endDate ? new Date(filterState.dateRange.endDate) : null
-        
-        if (startDate && noteDate < startDate) return false
-        if (endDate && noteDate > endDate) return false
-        return true
-      })
-    }
-    
-    // Apply tag filter
-    if (filterState.selectedTags.length > 0) {
-      filteredResults = filteredResults.filter(note => {
-        if (!note.tags || note.tags.length === 0) return false
-        return filterState.selectedTags.some(selectedTag => 
-          note.tags!.some(noteTag => noteTag.tag.name === selectedTag)
-        )
-      })
-    }
-    
-    // Apply pinned filter
-    if (filterState.isPinned !== null) {
-      filteredResults = filteredResults.filter(note => note.isPinned === filterState.isPinned)
-    }
-    
-    setNotes(filteredResults)
-  }
-
-  // Debounced search effect
-  useEffect(() => {
     const timeoutId = setTimeout(() => {
-      handleSearch(searchQuery)
+      if (searchQuery.trim()) {
+        // Search is handled by the store - it will apply filters automatically
+        apiService.searchNotes(user.id, searchQuery).then((searchResults) => {
+          // Store handles the filtering, but we need to update allNotes
+          useNotesStore.getState().setAllNotes(searchResults)
+        }).catch((error) => {
+          console.error('Error searching notes:', error)
+        })
+      } else {
+        // If search is empty, refresh notes for current desktop
+        refreshNotes(user.id, parseInt(id || '1'))
+      }
     }, 300)
 
     return () => clearTimeout(timeoutId)
-  }, [searchQuery, user])
+  }, [searchQuery, user, id, refreshNotes])
 
-  // Apply filters when allNotes changes (after search or desktop change)
-  useEffect(() => {
-    if (allNotes.length > 0) {
-      applyFilters(filters)
-    }
-  }, [allNotes])
+  // Apply filters - store handles this automatically
+  const applyFilters = (filterState: FilterState) => {
+    setFilters(filterState)
+  }
 
-  const filteredNotes = notes // Notes are already filtered by the API
+  const filteredNotes = notes // Notes are already filtered by the store
 
   const handleCreateDesktop = () => {
-    setIsCreateDesktopModalOpen(true)
+    setCreateDesktopModalOpen(true)
   }
 
   const handleDesktopCreated = async () => {
-    // Refresh desktops after creation
+    // Refresh desktops after creation - store handles cache invalidation
     if (user) {
-      await loadDesktops(user.id)
+      await refreshDesktops(user.id)
       // If this was the first desktop, navigate to it
-      const updatedDesktops = await apiService.getDesktops(user.id)
+      const updatedDesktops = useDesktopStore.getState().desktops
       if (updatedDesktops.length === 1) {
         navigate(`/desktop/${updatedDesktops[0].id}`)
       }
@@ -294,32 +268,32 @@ const Desktop = () => {
   }
 
   const handleCreateRoadmap = () => {
-    setIsCreateRoadmapModalOpen(true)
+    setCreateRoadmapModalOpen(true)
   }
 
   const handleRoadmapCreated = async () => {
-    // Refresh roadmaps after creation
+    // Refresh roadmaps after creation - store handles cache invalidation
     if (user) {
-      await loadDesktopData(user.id, parseInt(id || '1'))
+      await refreshRoadmaps(user.id, parseInt(id || '1'))
     }
   }
 
   const handleRoadmapClick = (roadmap: Roadmap) => {
-    setSelectedRoadmap(roadmap)
-    setIsRoadmapViewerOpen(true)
+    setCurrentRoadmap(roadmap)
+    setRoadmapViewerOpen(true)
   }
 
   const handleRoadmapUpdated = async () => {
-    // Refresh roadmaps after update
+    // Refresh roadmaps after update - store handles cache invalidation
     if (user) {
-      await loadDesktopData(user.id, parseInt(id || '1'))
+      await refreshRoadmaps(user.id, parseInt(id || '1'))
     }
   }
 
   const handleRoadmapDeleted = async () => {
-    // Refresh roadmaps after deletion
+    // Refresh roadmaps after deletion - store handles cache invalidation
     if (user) {
-      await loadDesktopData(user.id, parseInt(id || '1'))
+      await refreshRoadmaps(user.id, parseInt(id || '1'))
     }
   }
 
@@ -357,24 +331,21 @@ const Desktop = () => {
     if (!draggedItem || !user) return
 
     try {
-      setError(null)
-      
       if (draggedItem.type === 'note') {
-        await apiService.transferNote(draggedItem.id, targetDesktopId, user.id)
+        await useNotesStore.getState().transferNote(draggedItem.id, targetDesktopId, user.id)
       } else if (draggedItem.type === 'roadmap') {
-        await apiService.transferRoadmap(draggedItem.id, targetDesktopId, user.id)
+        await useRoadmapsStore.getState().transferRoadmap(draggedItem.id, targetDesktopId, user.id)
       }
 
-      // Refresh data after transfer
-      await loadDesktopData(user.id, parseInt(id || '1'))
-      
-      // Show success message
-      setError('✅ Item transferred successfully!')
-      setTimeout(() => setError(null), 3000)
+      // Refresh data after transfer - stores handle cache invalidation
+      await Promise.all([
+        refreshNotes(user.id, parseInt(id || '1')),
+        refreshRoadmaps(user.id, parseInt(id || '1')),
+      ])
       
     } catch (error) {
       console.error('Error transferring item:', error)
-      setError('Failed to transfer item. Please try again.')
+      // Error is handled by stores
     } finally {
       setDraggedItem(null)
       setIsDragging(false)
@@ -519,8 +490,8 @@ const Desktop = () => {
     <div className="min-h-screen">
       {/* Create Note Modal */}
       <CreateNoteModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
+        isOpen={isCreateNoteModalOpen}
+        onClose={() => setCreateNoteModalOpen(false)}
         desktopId={parseInt(id || '1')}
         userId={user?.id || 0}
         onNoteCreated={handleNoteCreated}
@@ -531,8 +502,8 @@ const Desktop = () => {
         note={selectedNote}
         isOpen={isNoteViewerOpen}
         onClose={() => {
-          setIsNoteViewerOpen(false)
-          setSelectedNote(null)
+          setNoteViewerOpen(false)
+          setCurrentNote(null)
         }}
         onNoteUpdated={handleNoteUpdated}
         onNoteDeleted={handleNoteDeleted}
@@ -542,7 +513,7 @@ const Desktop = () => {
       {/* Create Desktop Modal */}
       <CreateDesktopModal
         isOpen={isCreateDesktopModalOpen}
-        onClose={() => setIsCreateDesktopModalOpen(false)}
+        onClose={() => setCreateDesktopModalOpen(false)}
         userId={user?.id || 0}
         onDesktopCreated={handleDesktopCreated}
       />
@@ -550,7 +521,7 @@ const Desktop = () => {
       {/* Create Roadmap Modal */}
       <CreateRoadmapModal
         isOpen={isCreateRoadmapModalOpen}
-        onClose={() => setIsCreateRoadmapModalOpen(false)}
+        onClose={() => setCreateRoadmapModalOpen(false)}
         desktopId={parseInt(id || '1')}
         userId={user?.id || 0}
         onRoadmapCreated={handleRoadmapCreated}
@@ -561,8 +532,8 @@ const Desktop = () => {
         roadmap={selectedRoadmap}
         isOpen={isRoadmapViewerOpen}
         onClose={() => {
-          setIsRoadmapViewerOpen(false)
-          setSelectedRoadmap(null)
+          setRoadmapViewerOpen(false)
+          setCurrentRoadmap(null)
         }}
         onRoadmapUpdated={handleRoadmapUpdated}
         onRoadmapDeleted={handleRoadmapDeleted}
@@ -572,7 +543,7 @@ const Desktop = () => {
       {/* Filter Modal */}
       <FilterModal
         isOpen={isFilterModalOpen}
-        onClose={() => setIsFilterModalOpen(false)}
+        onClose={() => setFilterModalOpen(false)}
         onApplyFilters={applyFilters}
         currentFilters={filters}
       />
@@ -612,7 +583,7 @@ const Desktop = () => {
             {/* Carousel Toggle Button - Mobile Only */}
             <div className="flex items-center justify-center flex-1 sm:hidden">
               <button
-                onClick={() => setIsCarouselVisible(!isCarouselVisible)}
+                onClick={() => setCarouselVisible(!isCarouselVisible)}
                 className="p-2 rounded-lg hover:bg-pink-50 transition-colors duration-200"
                 title="Toggle Desktop Carousel"
               >
@@ -794,7 +765,7 @@ const Desktop = () => {
               searchQuery={searchQuery}
               onSearchChange={(query) => setSearchQuery(query)}
               filters={filters}
-              onOpenFilterModal={() => setIsFilterModalOpen(true)}
+              onOpenFilterModal={() => setFilterModalOpen(true)}
               viewMode={viewMode}
               onViewModeChange={(mode) => setViewMode(mode)}
             />
@@ -825,12 +796,7 @@ const Desktop = () => {
               onDragEnd={handleDragEnd}
               onClearSearchAndFilters={() => {
                 setSearchQuery('')
-                const resetFilters: FilterState = {
-                  dateRange: { startDate: '', endDate: '' },
-                  selectedTags: [],
-                  isPinned: null
-                }
-                setFilters(resetFilters)
+                clearFilters()
               }} 
             />
           </div>
