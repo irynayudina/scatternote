@@ -25,17 +25,17 @@ export const client = new ApolloClient({
       Query: {
         fields: {
           desktops: {
-            merge(existing = [], incoming: any[]) {
+            merge(incoming: any[]) {
               return incoming;
             },
           },
           notes: {
-            merge(existing = [], incoming: any[]) {
+            merge(incoming: any[]) {
               return incoming;
             },
           },
           roadmaps: {
-            merge(existing = [], incoming: any[]) {
+            merge(incoming: any[]) {
               return incoming;
             },
           },

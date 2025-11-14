@@ -14,7 +14,7 @@ import DesktopToolbar from "./DesktopToolbar"
 import EmptyDesktopState from "./EmptyDesktopState"
 import type { FilterState } from "./FilterModal"
 import { apiService } from "@/services/api"
-import type { Note, Desktop as DesktopType, Roadmap } from "@/services/api"
+import type { Note, Roadmap } from "@/services/api"
 import { 
   useUserStore, 
   useDesktopStore, 
@@ -30,7 +30,6 @@ const Desktop = () => {
   // User store
   const user = useUserStore((state) => state.user)
   const setUser = useUserStore((state) => state.setUser)
-  const setUserLoading = useUserStore((state) => state.setLoading)
   
   // Desktop store
   const desktops = useDesktopStore((state) => state.desktops)
@@ -79,7 +78,6 @@ const Desktop = () => {
   const dragOverDesktop = useUIStore((state) => state.dragOverDesktop)
   const isDragModeEnabled = useUIStore((state) => state.isDragModeEnabled)
   const isCarouselVisible = useUIStore((state) => state.isCarouselVisible)
-  const isMouseOverCarousel = useUIStore((state) => state.isMouseOverCarousel)
   const setViewMode = useUIStore((state) => state.setViewMode)
   const setActiveDesktopId = useUIStore((state) => state.setActiveDesktopId)
   const setCreateNoteModalOpen = useUIStore((state) => state.setCreateNoteModalOpen)
@@ -557,7 +555,7 @@ const Desktop = () => {
             clearTimeout(hideCarouselTimeoutRef.current)
             hideCarouselTimeoutRef.current = null
           }
-          setIsCarouselVisible(true)
+          setCarouselVisible(true)
         }}
         onMouseLeave={() => {
           debouncedHideCarousel()
@@ -667,7 +665,7 @@ const Desktop = () => {
             opacity: isCarouselVisible ? 1 : 0,
           }}
           onMouseEnter={() => {
-            setIsMouseOverCarousel(true)
+            setMouseOverCarousel(true)
             // Clear any pending hide timeout
             if (hideCarouselTimeoutRef.current) {
               clearTimeout(hideCarouselTimeoutRef.current)
@@ -675,8 +673,8 @@ const Desktop = () => {
             }
           }}
           onMouseLeave={() => {
-            setIsMouseOverCarousel(false)
-            setIsCarouselVisible(false)
+            setMouseOverCarousel(false)
+            setCarouselVisible(false)
           }}
         >
           <div className="max-w-10xl mx-auto px-[40px] sm:px-[60px]">

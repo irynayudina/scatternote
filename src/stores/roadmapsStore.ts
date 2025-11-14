@@ -103,7 +103,7 @@ export const useRoadmapsStore = create<RoadmapsState>((set, get) => ({
     }
   },
 
-  fetchRoadmap: async (roadmapId: number, userId: number, forceRefresh = false) => {
+  fetchRoadmap: async (roadmapId: number, userId: number) => {
     set({ isLoading: true, error: null });
     try {
       const roadmap = await apiService.getRoadmap(roadmapId, userId);

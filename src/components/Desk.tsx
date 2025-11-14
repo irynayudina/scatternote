@@ -7,7 +7,6 @@ import CreateNoteModalWithDesktop from './CreateNoteModalWithDesktop'
 import EditDesktopsModal from './EditDesktopsModal'
 import LogoutButton from './LogoutButton'
 import { apiService } from '../services/api'
-import type { Desktop, User } from '../services/api'
 import { 
   useUserStore, 
   useDesktopStore, 

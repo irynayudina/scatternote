@@ -180,7 +180,7 @@ export const useNotesStore = create<NotesState>((set, get) => ({
     }
   },
 
-  fetchNote: async (noteId: number, userId: number, forceRefresh = false) => {
+  fetchNote: async (noteId: number, userId: number) => {
     set({ isLoading: true, error: null });
     try {
       const note = await apiService.getNote(noteId, userId);

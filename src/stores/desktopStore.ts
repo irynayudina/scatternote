@@ -70,7 +70,7 @@ export const useDesktopStore = create<DesktopState>((set, get) => ({
     }
   },
 
-  fetchDesktop: async (desktopId: number, userId: number, forceRefresh = false) => {
+  fetchDesktop: async (desktopId: number, userId: number) => {
     set({ isLoading: true, error: null });
     try {
       const desktop = await apiService.getDesktop(desktopId, userId);
