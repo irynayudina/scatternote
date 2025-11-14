@@ -8,7 +8,7 @@ interface EmptyDesktopStateProps {
 
 const EmptyDesktopState = ({ onCreateDesktop, onGoToHomeBoard }: EmptyDesktopStateProps) => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100">
+    <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100">
       <div className="max-w-md mx-auto text-center px-6">
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-pink-200 p-8">
           <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-pink-100 to-purple-100 rounded-full flex items-center justify-center">

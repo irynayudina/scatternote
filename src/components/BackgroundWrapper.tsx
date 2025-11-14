@@ -21,7 +21,7 @@ const BackgroundWrapper: React.FC<BackgroundWrapperProps> = ({ children }) => {
   }
 
   return (
-    <div style={backgroundStyle}>
+    <div style={backgroundStyle} className="min-h-screen">
       {children}
     </div>
   );

@@ -485,7 +485,7 @@ const Desktop = () => {
 
 
   return (
-    <div className="min-h-screen">
+    <div className="h-screen flex flex-col overflow-hidden">
       {/* Create Note Modal */}
       <CreateNoteModal
         isOpen={isCreateNoteModalOpen}
@@ -548,7 +548,7 @@ const Desktop = () => {
 
       {/* Header */}
       <header 
-        className="bg-white/90 backdrop-blur-md border-b border-pink-200/50 sticky top-0 z-20"
+        className="bg-white/90 backdrop-blur-md border-b border-pink-200/50 sticky top-0 z-20 flex-shrink-0"
         onMouseEnter={() => {
           // Clear any pending hide timeout
           if (hideCarouselTimeoutRef.current) {
@@ -637,7 +637,7 @@ const Desktop = () => {
 
       {/* Error/Success Message */}
       {error && (
-        <div className={`px-3 sm:px-4 py-2 sm:py-3 rounded-md mx-3 sm:mx-4 mt-3 text-sm ${
+        <div className={`px-3 sm:px-4 py-2 sm:py-3 rounded-md mx-3 sm:mx-4 mt-3 text-sm flex-shrink-0 ${
           error.includes('✅') 
             ? 'bg-green-50 border border-green-200 text-green-700' 
             : 'bg-red-50 border border-red-200 text-red-700'
@@ -657,7 +657,7 @@ const Desktop = () => {
       {/* Desktop Carousel - Only show if there are desktops and carousel is visible */}
       {desktops.length > 0 && isCarouselVisible && (
         <div 
-          className="relative bg-gradient-to-b from-white/95 via-white/90 to-white/85 backdrop-blur-md border-b border-pink-200/50 shadow-lg shadow-pink-100/30"
+          className="relative bg-gradient-to-b from-white/95 via-white/90 to-white/85 backdrop-blur-md border-b border-pink-200/50 shadow-lg shadow-pink-100/30 flex-shrink-0"
           style={{
             animation: 'slideDown 0.4s ease-out',
           }}
@@ -744,7 +744,7 @@ const Desktop = () => {
 
       {/* Main Content - Only show if there are desktops */}
       {desktops.length > 0 && (
-        <main className="bg-white/60 min-h-[calc(100vh-200px)] max-w-10xl mx-auto py-4 sm:py-6">
+        <main className="bg-white/60 flex-1 overflow-y-auto max-w-10xl mx-auto w-full py-4 sm:py-6">
           <div className="px-3 sm:px-4 lg:px-6">
             {/* Toolbar */}
             <DesktopToolbar
