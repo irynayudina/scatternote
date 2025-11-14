@@ -693,7 +693,7 @@ const Desktop = () => {
             <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-24 bg-gradient-to-l from-white/90 to-transparent z-20 pointer-events-none" />
 
             {/* Carousel Wrapper */}
-            <div className="relative mx-auto overflow-hidden py-3 sm:py-4">
+            <div className="relative mx-auto overflow-hidden py-4">
               <div 
                 ref={carouselRef}
                 className="relative overflow-visible"
@@ -711,7 +711,7 @@ const Desktop = () => {
                 }}
               >
                 <div 
-                  className="flex justify-center items-center gap-2 sm:gap-3 lg:gap-4 px-2 transition-all duration-700 ease-out pt-3"
+                  className="flex justify-center items-center gap-2 sm:gap-3 lg:gap-4 px-2 transition-all duration-700 ease-out pt-4"
                   style={{ 
                     userSelect: 'none',
                     WebkitUserSelect: 'none',
