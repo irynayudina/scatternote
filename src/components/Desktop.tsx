@@ -657,10 +657,9 @@ const Desktop = () => {
       {/* Desktop Carousel - Only show if there are desktops and carousel is visible */}
       {desktops.length > 0 && isCarouselVisible && (
         <div 
-          className="relative bg-gradient-to-b from-white/95 via-white/90 to-white/85 backdrop-blur-md border-b border-pink-200/50 shadow-lg shadow-pink-100/30 transition-all duration-500 ease-out"
+          className="relative bg-gradient-to-b from-white/95 via-white/90 to-white/85 backdrop-blur-md border-b border-pink-200/50 shadow-lg shadow-pink-100/30"
           style={{
-            transform: isCarouselVisible ? 'translateY(0)' : 'translateY(-10px)',
-            opacity: isCarouselVisible ? 1 : 0,
+            animation: 'slideDown 0.4s ease-out',
           }}
           onMouseEnter={() => {
             setMouseOverCarousel(true)
@@ -694,7 +693,7 @@ const Desktop = () => {
             <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-24 bg-gradient-to-l from-white/90 to-transparent z-20 pointer-events-none" />
 
             {/* Carousel Wrapper */}
-            <div className="relative mx-auto overflow-hidden py-6 sm:py-8">
+            <div className="relative mx-auto overflow-hidden py-3 sm:py-4">
               <div 
                 ref={carouselRef}
                 className="relative overflow-visible"
@@ -712,7 +711,7 @@ const Desktop = () => {
                 }}
               >
                 <div 
-                  className="flex justify-center items-center gap-3 sm:gap-6 lg:gap-8 px-2 transition-all duration-700 ease-out"
+                  className="flex justify-center items-center gap-2 sm:gap-3 lg:gap-4 px-2 transition-all duration-700 ease-out"
                   style={{ 
                     userSelect: 'none',
                     WebkitUserSelect: 'none',
