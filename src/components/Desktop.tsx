@@ -657,11 +657,9 @@ const Desktop = () => {
       {/* Desktop Carousel - Only show if there are desktops and carousel is visible */}
       {desktops.length > 0 && isCarouselVisible && (
         <div 
-          className="bg-white/70 backdrop-blur-sm border-b border-b-[1px] border-transparent transition-all duration-400 ease-out"
+          className="relative bg-gradient-to-b from-white/95 via-white/90 to-white/85 backdrop-blur-md border-b border-pink-200/50 shadow-lg shadow-pink-100/30 transition-all duration-500 ease-out"
           style={{
-            borderImage: "linear-gradient(to right, #a78bfa, #ec4899) 1",
-            // #a78bfa (purple-400), #ec4899 (pink-500)
-            transform: isCarouselVisible ? 'translateY(0)' : 'translateY(-5px)',
+            transform: isCarouselVisible ? 'translateY(0)' : 'translateY(-10px)',
             opacity: isCarouselVisible ? 1 : 0,
           }}
           onMouseEnter={() => {
@@ -677,32 +675,26 @@ const Desktop = () => {
             setCarouselVisible(false)
           }}
         >
-          <div className="max-w-10xl mx-auto px-[40px] sm:px-[60px]">
-          {/* <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6"> */}
-            {/* Left Decorative Element */}
-            <div className="absolute left-0 sm:left-1 top-1/2 transform -translate-y-1/2 z-10 px-1">
-              <svg width="60" height="15" viewBox="0 0 90 20" xmlns="http://www.w3.org/2000/svg" className="text-gray-400 w-[30px] sm:w-[45px]">
-                {/* Line */}
-                <line x1="0" y1="10" x2="60" y2="10" stroke="currentColor" strokeWidth="2" />
-                
-                {/* Unfilled circle at the end */}
-                <circle cx="70" cy="10" r="10" fill="none" stroke="currentColor" strokeWidth="2" />
-              </svg>
-            </div>
+          {/* Gradient Border Accent */}
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-pink-400 to-transparent opacity-60" />
+          
+          {/* Decorative Background Pattern */}
+          <div className="absolute inset-0 opacity-[0.02] pointer-events-none" 
+            style={{
+              backgroundImage: `radial-gradient(circle at 2px 2px, rgb(236, 72, 153) 1px, transparent 0)`,
+              backgroundSize: '24px 24px'
+            }}
+          />
 
-            {/* Right Decorative Element */}
-            <div className="absolute right-0 sm:right-1 top-1/2 transform -translate-y-1/2 z-10 px-1">
-              <svg width="60" height="15" viewBox="0 0 90 20" xmlns="http://www.w3.org/2000/svg" className="text-gray-400 transform scale-x-[-1] w-[30px] sm:w-[45px]">
-                {/* Line */}
-                <line x1="0" y1="10" x2="60" y2="10" stroke="currentColor" strokeWidth="2" />
-                
-                {/* Unfilled circle at the end */}
-                <circle cx="70" cy="10" r="10" fill="none" stroke="currentColor" strokeWidth="2" />
-              </svg>
-            </div>
+          <div className="relative max-w-10xl mx-auto px-4 sm:px-8 lg:px-12">
+            {/* Left Fade Gradient */}
+            <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-24 bg-gradient-to-r from-white/90 to-transparent z-20 pointer-events-none" />
 
-            {/* Carousel Wrapper with Fixed Width */}
-            <div className="relative mx-auto overflow-hidden">
+            {/* Right Fade Gradient */}
+            <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-24 bg-gradient-to-l from-white/90 to-transparent z-20 pointer-events-none" />
+
+            {/* Carousel Wrapper */}
+            <div className="relative mx-auto overflow-hidden py-6 sm:py-8">
               <div 
                 ref={carouselRef}
                 className="relative overflow-visible"
@@ -720,14 +712,12 @@ const Desktop = () => {
                 }}
               >
                 <div 
-                  className="flex justify-center items-center space-x-2 sm:space-x-6 lg:space-x-8 px-2 pt-6 pb-4 transition-all duration-500 ease-out"
+                  className="flex justify-center items-center gap-3 sm:gap-6 lg:gap-8 px-2 transition-all duration-700 ease-out"
                   style={{ 
                     userSelect: 'none',
                     WebkitUserSelect: 'none',
                     MozUserSelect: 'none',
                     msUserSelect: 'none',
-                    transform: isCarouselVisible ? 'translateY(0)' : 'translateY(-10px)',
-                    opacity: isCarouselVisible ? 1 : 0,
                   }}
                 >
                   {getRearrangedDesktops().map((desktopItem) => (
@@ -746,6 +736,9 @@ const Desktop = () => {
                 </div>
               </div>
             </div>
+
+            {/* Subtle Bottom Border */}
+            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-pink-200/50 to-transparent" />
           </div>
         </div>
       )}
