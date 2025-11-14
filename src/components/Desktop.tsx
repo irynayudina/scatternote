@@ -711,7 +711,7 @@ const Desktop = () => {
                 }}
               >
                 <div 
-                  className="flex justify-center items-center gap-2 sm:gap-3 lg:gap-4 px-2 transition-all duration-700 ease-out"
+                  className="flex justify-center items-center gap-2 sm:gap-3 lg:gap-4 px-2 transition-all duration-700 ease-out pt-2"
                   style={{ 
                     userSelect: 'none',
                     WebkitUserSelect: 'none',
