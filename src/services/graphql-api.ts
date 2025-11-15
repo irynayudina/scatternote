@@ -182,6 +182,16 @@ export interface Roadmap {
   steps: RoadmapStep[];
 }
 
+export interface Utility {
+  id?: number;
+  name: string;
+  link: string;
+  icon?: string;
+  picture?: string;
+  image?: string;
+  description?: string;
+}
+
 // GraphQL Queries and Mutations
 
 // Auth Queries
@@ -1151,6 +1161,35 @@ class GraphQLApiService {
       variables: { roadmapId, stepIds, userId }
     });
     return data.reorderSteps;
+  }
+
+  // REST API method for utilities
+  async getUtilities(): Promise<Utility[]> {
+    let token: string | null = null;
+    
+    // Get token from token getter
+    if (tokenGetter) {
+      try {
+        token = await tokenGetter();
+      } catch (error) {
+        console.error('Error getting access token:', error);
+      }
+    }
+
+    const response = await fetch(`${API_BASE_URL}/utilities/outlet`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch utilities: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data;
   }
 }
 

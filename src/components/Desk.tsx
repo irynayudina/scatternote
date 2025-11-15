@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import CreateDesktopModal from './CreateDesktopModal'
@@ -11,6 +11,8 @@ import {
   useDesktopStore, 
   useUIStore 
 } from '@/stores'
+import { apiService } from '@/services/api'
+import type { Utility } from '@/services/api'
 
 const HomeBoard = () => {
   const navigate = useNavigate()
@@ -30,7 +32,26 @@ const HomeBoard = () => {
   const setCreateNoteModalOpen = useUIStore((state) => state.setCreateNoteModalOpen)
   const setEditDesktopsModalOpen = useUIStore((state) => state.setEditDesktopsModalOpen)
   
+  // Utilities state
+  const [utilities, setUtilities] = useState<Utility[]>([])
+  const [utilitiesLoading, setUtilitiesLoading] = useState(false)
+  const [utilitiesError, setUtilitiesError] = useState<string | null>(null)
+  
   const isLoading = desktopLoading || authLoading
+
+  const fetchUtilities = useCallback(async () => {
+    setUtilitiesLoading(true)
+    setUtilitiesError(null)
+    try {
+      const data = await apiService.getUtilities()
+      setUtilities(data)
+    } catch (error) {
+      console.error('Error fetching utilities:', error)
+      setUtilitiesError(error instanceof Error ? error.message : 'Failed to fetch utilities')
+    } finally {
+      setUtilitiesLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
     if (authLoading) return;
@@ -40,22 +61,24 @@ const HomeBoard = () => {
       return
     }
 
-    // If user exists, load desktops
+    // If user exists, load desktops and utilities
     if (user) {
       fetchDesktops(user.id)
+      fetchUtilities()
     } else {
       // Try to sync user profile
       syncUserProfile().then((userExists) => {
         const currentUser = useUserStore.getState().user
         if (userExists && currentUser) {
           fetchDesktops(currentUser.id)
+          fetchUtilities()
         } else if (!userExists) {
           // User doesn't exist in backend, redirect to username selection
           navigate('/username-selection', { replace: true })
         }
       })
     }
-  }, [isAuthenticated, user, authLoading, navigate, syncUserProfile, fetchDesktops])
+  }, [isAuthenticated, user, authLoading, navigate, syncUserProfile, fetchDesktops, fetchUtilities])
 
   const handleCreateDesktop = () => {
     setCreateModalOpen(true)
@@ -287,6 +310,88 @@ const HomeBoard = () => {
                   : "This is your personal workspace where you can create, organize, and manage your notes. You have " + desktops.length + " desktop(s) ready for your notes."
                 }
               </p>
+            </div>
+          </div>
+
+          {/* Utilities Section */}
+          <div className="mt-8 bg-white/80 backdrop-blur-sm overflow-hidden shadow-lg rounded-lg border border-pink-200 hover:shadow-xl transition-all duration-200">
+            <div className="px-4 py-5 sm:p-6">
+              <h3 className="text-lg leading-6 font-medium text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text mb-4">
+                Useful Resources
+              </h3>
+              {utilitiesLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                  <p className="ml-3 text-gray-600">Loading utilities...</p>
+                </div>
+              ) : utilitiesError ? (
+                <div className="text-center py-8">
+                  <p className="text-red-600 mb-2">Error loading utilities</p>
+                  <p className="text-sm text-gray-500">{utilitiesError}</p>
+                  <Button 
+                    onClick={fetchUtilities}
+                    className="mt-4 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white border-0"
+                    variant="outline"
+                  >
+                    Retry
+                  </Button>
+                </div>
+              ) : utilities.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No utilities available at the moment.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {utilities.map((utility, index) => {
+                    const imageUrl = utility.picture || utility.image || utility.icon
+                    return (
+                      <a
+                        key={utility.id || index}
+                        href={utility.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex flex-col items-center p-4 bg-white/60 rounded-lg border border-pink-200 hover:bg-white/80 hover:shadow-md transition-all duration-200 group"
+                      >
+                        {imageUrl ? (
+                          <div className="w-16 h-16 mb-3 flex items-center justify-center">
+                            {imageUrl.startsWith('http') || imageUrl.startsWith('/') ? (
+                              <img 
+                                src={imageUrl} 
+                                alt={utility.name}
+                                className="w-full h-full object-contain rounded-lg"
+                                onError={(e) => {
+                                  // Fallback to a default icon if image fails to load
+                                  const target = e.target as HTMLImageElement
+                                  target.style.display = 'none'
+                                  if (target.parentElement) {
+                                    target.parentElement.innerHTML = '<div class="w-full h-full flex items-center justify-center text-4xl">🔗</div>'
+                                  }
+                                }}
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-4xl">
+                                {imageUrl}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="w-16 h-16 mb-3 flex items-center justify-center text-4xl bg-gradient-to-br from-pink-100 to-purple-100 rounded-lg">
+                            🔗
+                          </div>
+                        )}
+                        <h4 className="text-sm font-medium text-gray-900 text-center group-hover:text-purple-600 transition-colors">
+                          {utility.name}
+                        </h4>
+                        {utility.description && (
+                          <p className="text-xs text-gray-500 text-center mt-1 line-clamp-2">
+                            {utility.description}
+                          </p>
+                        )}
+                      </a>
+                    )
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>

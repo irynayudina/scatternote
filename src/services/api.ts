@@ -8,5 +8,6 @@ export type {
   Auth0User, 
   Tag, 
   RoadmapStep, 
-  Roadmap 
+  Roadmap,
+  Utility
 } from './graphql-api'; 
