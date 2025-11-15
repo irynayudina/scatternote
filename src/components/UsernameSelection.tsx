@@ -4,24 +4,30 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { apiService } from '../services/api';
+import { useAuth } from '@/hooks/useAuth';
 
 interface UsernameSelectionProps {
   onComplete: (userData: any) => void;
 }
 
 const UsernameSelection = ({ onComplete }: UsernameSelectionProps) => {
-  const { user, isLoading, logout } = useAuth0();
+  const { user: auth0User, isLoading: auth0Loading, logout } = useAuth0();
+  const { isAuthenticated, user, createUserWithUsername, isLoading, error: authError } = useAuth();
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isLoading && !user) {
+    if (!auth0Loading && !isAuthenticated) {
       navigate('/');
     }
-  }, [isLoading, user, navigate]);
+    
+    // If user already exists, redirect to home
+    if (user) {
+      navigate('/home-board', { replace: true });
+    }
+  }, [auth0Loading, isAuthenticated, user, navigate]);
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -56,49 +62,23 @@ const UsernameSelection = ({ onComplete }: UsernameSelectionProps) => {
     setError(null);
 
     try {
-      const userData = await apiService.createUserWithUsername({
-        sub: user?.sub!,
-        email: user?.email!,
-        email_verified: user?.email_verified!,
-        username: username.trim(),
-        name: user?.name!,
-        nickname: user?.nickname!,
-        picture: user?.picture!,
-        updated_at: user?.updated_at!
-      });
-      
-      // Store user data in session storage
-      sessionStorage.setItem('user', JSON.stringify(userData));
-      if (user?.sub) {
-        sessionStorage.setItem('token', user.sub);
-      }
-      
+      const userData = await createUserWithUsername(username.trim());
       onComplete(userData);
+      navigate('/home-board', { replace: true });
     } catch (error: any) {
       console.error('Error creating user with username:', error);
       
-      if (error.message?.includes('Username is already taken')) {
+      if (error.message?.includes('Username is already taken') || error.message?.includes('already taken')) {
         setError('This username is already taken. Please choose another one.');
       } else {
-        setError('Failed to create your account. Please try again.');
+        setError(error.message || 'Failed to create your account. Please try again.');
       }
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleStartOver = () => {
-    // Clear session storage
-    sessionStorage.clear();
-    // Logout from Auth0 and redirect to signup page
-    logout({
-      logoutParams: {
-        returnTo: window.location.origin + '/signup',
-      },
-    });
-  };
-
-  if (isLoading) {
+  if (auth0Loading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-200 via-purple-200 to-pink-300">
         <div className="text-center">
@@ -109,7 +89,7 @@ const UsernameSelection = ({ onComplete }: UsernameSelectionProps) => {
     );
   }
 
-  if (!user) {
+  if (!isAuthenticated || !auth0User) {
     return null;
   }
 
@@ -125,9 +105,9 @@ const UsernameSelection = ({ onComplete }: UsernameSelectionProps) => {
           </p>
         </div>
         
-        {error && (
+        {(error || authError) && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
-            {error}
+            {error || authError}
           </div>
         )}
         
@@ -158,19 +138,6 @@ const UsernameSelection = ({ onComplete }: UsernameSelectionProps) => {
             {isSubmitting ? 'Creating Account...' : 'Complete Sign Up'}
           </Button>
         </form>
-
-        <div className="pt-4 border-t border-purple-200">
-          <Button 
-            onClick={handleStartOver}
-            variant="outline"
-            className="w-full text-purple-600 border-purple-300 hover:bg-purple-50 font-medium py-2 px-4 rounded-md transition-all duration-200"
-          >
-            Start Over
-          </Button>
-          <p className="text-xs text-purple-500 text-center mt-2">
-            Clear all data and start fresh
-          </p>
-        </div>
       </div>
     </div>
   );

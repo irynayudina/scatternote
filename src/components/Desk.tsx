@@ -1,25 +1,20 @@
 import { useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
-import { useAuth0 } from '@auth0/auth0-react';
 import CreateDesktopModal from './CreateDesktopModal'
 import CreateNoteModalWithDesktop from './CreateNoteModalWithDesktop'
 import EditDesktopsModal from './EditDesktopsModal'
 import LogoutButton from './LogoutButton'
-import { apiService } from '../services/api'
+import { useAuth } from '@/hooks/useAuth'
 import { 
-  useUserStore, 
+  useUserStore,
   useDesktopStore, 
   useUIStore 
 } from '@/stores'
 
 const HomeBoard = () => {
   const navigate = useNavigate()
-  const { user: auth0User, isAuthenticated, isLoading: auth0Loading } = useAuth0()
-  
-  // User store
-  const user = useUserStore((state) => state.user)
-  const setUser = useUserStore((state) => state.setUser)
+  const { isAuthenticated, user, isLoading: authLoading, syncUserProfile } = useAuth()
   
   // Desktop store
   const desktops = useDesktopStore((state) => state.desktops)
@@ -35,59 +30,32 @@ const HomeBoard = () => {
   const setCreateNoteModalOpen = useUIStore((state) => state.setCreateNoteModalOpen)
   const setEditDesktopsModalOpen = useUIStore((state) => state.setEditDesktopsModalOpen)
   
-  const isLoading = desktopLoading
+  const isLoading = desktopLoading || authLoading
 
   useEffect(() => {
-    if (auth0Loading) return;
+    if (authLoading) return;
 
-    if (!isAuthenticated || !auth0User) {
-      navigate('/')
+    if (!isAuthenticated) {
+      navigate('/', { replace: true })
       return
     }
 
-    // Check if user data is in session storage
-    const userData = sessionStorage.getItem('user')
-    
-    if (userData) {
-      try {
-        const parsedUser = JSON.parse(userData)
-        setUser(parsedUser)
-        fetchDesktops(parsedUser.id)
-      } catch (error) {
-        console.error('Error parsing user data:', error)
-        // If session data is corrupted, try to get user from backend
-        fetchUserFromBackend()
-      }
+    // If user exists, load desktops
+    if (user) {
+      fetchDesktops(user.id)
     } else {
-      // No session data, try to get user from backend
-      fetchUserFromBackend()
+      // Try to sync user profile
+      syncUserProfile().then((userExists) => {
+        const currentUser = useUserStore.getState().user
+        if (userExists && currentUser) {
+          fetchDesktops(currentUser.id)
+        } else if (!userExists) {
+          // User doesn't exist in backend, redirect to username selection
+          navigate('/username-selection', { replace: true })
+        }
+      })
     }
-  }, [auth0User, isAuthenticated, auth0Loading, navigate, setUser, fetchDesktops])
-
-  const fetchUserFromBackend = async () => {
-    if (!auth0User) return;
-    
-    try {
-      const userData = await apiService.createUser({
-        sub: auth0User.sub!,
-        email: auth0User.email!,
-        email_verified: auth0User.email_verified!,
-        name: auth0User.name!,
-        nickname: auth0User.nickname!,
-        picture: auth0User.picture!,
-        updated_at: auth0User.updated_at!
-      });
-      
-      sessionStorage.setItem('user', JSON.stringify(userData));
-      if (auth0User.sub) {
-        sessionStorage.setItem('token', auth0User.sub);
-      }
-      setUser(userData);
-      fetchDesktops(userData.id)
-    } catch (error) {
-      console.error('Error fetching user:', error);
-    }
-  }
+  }, [isAuthenticated, user, authLoading, navigate, syncUserProfile, fetchDesktops])
 
   const handleCreateDesktop = () => {
     setCreateModalOpen(true)
@@ -122,7 +90,7 @@ const HomeBoard = () => {
     }
   }
 
-  if (auth0Loading || isLoading) {
+  if (authLoading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100">
         <div className="text-center">

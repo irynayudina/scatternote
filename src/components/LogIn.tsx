@@ -1,58 +1,22 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import { apiService } from '../services/api';
+import { useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 
 const LogIn = () => {
-    const { loginWithRedirect, isAuthenticated, user, isLoading, logout } = useAuth0();
+    const { loginWithRedirect, isLoading } = useAuth0();
+    const { isAuthenticated, user, handleAuthRedirect, error } = useAuth();
     const navigate = useNavigate();
-    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (isAuthenticated && user) {
-            // Check if user already exists in our backend
-            checkExistingUser();
+        if (isAuthenticated) {
+            handleAuthRedirect();
         }
-    }, [isAuthenticated, user]);
-
-    const checkExistingUser = async () => {
-        if (!user) return;
-        
-        try {
-            const userData = await apiService.getProfile(user.sub!);
-            if (userData) {
-                // User already exists, store data and redirect to home
-                sessionStorage.setItem('user', JSON.stringify(userData));
-                if (user.sub) {
-                    sessionStorage.setItem('token', user.sub);
-                }
-                navigate('/home-board');
-            } else {
-                // User doesn't exist yet, redirect to username selection
-                navigate('/username-selection');
-            }
-        } catch (error: any) {
-            console.error('Error checking existing user:', error);
-            // Some other error, redirect to username selection as fallback
-            navigate('/username-selection');
-        }
-    };
+    }, [isAuthenticated, handleAuthRedirect]);
 
     const handleLogin = () => {
-        setError(null);
         loginWithRedirect();
-    };
-
-    const handleStartOver = () => {
-        // Clear session storage
-        sessionStorage.clear();
-        // Logout from Auth0 and redirect to login page
-        logout({
-            logoutParams: {
-                returnTo: window.location.origin,
-            },
-        });
     };
 
     if (isLoading) {
@@ -61,6 +25,18 @@ const LogIn = () => {
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
                     <p className="mt-4 text-purple-600 font-medium">Loading...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // If already authenticated and user exists, redirect will happen via useEffect
+    if (isAuthenticated && user) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-200 via-purple-200 to-pink-300">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+                    <p className="mt-4 text-purple-600 font-medium">Redirecting...</p>
                 </div>
             </div>
         );
@@ -102,19 +78,6 @@ const LogIn = () => {
                                 >
                                     Sign up here
                                 </button>
-                            </p>
-                        </div>
-
-                        <div className="pt-4 border-t border-purple-200">
-                            <Button 
-                                onClick={handleStartOver}
-                                variant="outline"
-                                className="w-full text-purple-600 border-purple-300 hover:bg-purple-50 font-medium py-2 px-4 rounded-md transition-all duration-200"
-                            >
-                                Start Over
-                            </Button>
-                            <p className="text-xs text-purple-500 text-center mt-2">
-                                Clear all data and start fresh
                             </p>
                         </div>
                     </div>

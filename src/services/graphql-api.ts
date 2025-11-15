@@ -1,5 +1,6 @@
-import { ApolloClient, InMemoryCache, createHttpLink, gql } from '@apollo/client';
+import { ApolloClient, InMemoryCache, createHttpLink, gql, from } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
+import { onError } from '@apollo/client/link/error';
 
 import { API_BASE_URL } from '../config/environment';
 
@@ -8,8 +9,44 @@ const httpLink = createHttpLink({
   uri: `${API_BASE_URL}/graphql`,
 });
 
-const authLink = setContext((_, { headers }) => {
-  const token = sessionStorage.getItem('token');
+// Error link to handle auth errors
+const errorLink = onError(({ graphQLErrors, networkError }) => {
+  if (graphQLErrors) {
+    graphQLErrors.forEach(({ extensions }) => {
+      if (extensions?.code === 'UNAUTHENTICATED') {
+        // Token expired or invalid - clear user and redirect to login
+        sessionStorage.clear();
+        localStorage.removeItem('user-storage');
+        window.location.href = '/';
+      }
+    });
+  }
+  
+  if (networkError) {
+    console.error(`[Network error]: ${networkError}`);
+  }
+});
+
+// Auth link - gets token from Auth0 SDK (stored in memory by Auth0)
+// Note: We'll update this to use a token getter function
+let tokenGetter: (() => Promise<string | null>) | null = null;
+
+export const setTokenGetter = (getter: () => Promise<string | null>) => {
+  tokenGetter = getter;
+};
+
+const authLink = setContext(async (_, { headers }) => {
+  let token: string | null = null;
+  
+  // Try to get token from Auth0 via the token getter
+  if (tokenGetter) {
+    try {
+      token = await tokenGetter();
+    } catch (error) {
+      console.error('Error getting access token:', error);
+    }
+  }
+  
   return {
     headers: {
       ...headers,
@@ -19,7 +56,7 @@ const authLink = setContext((_, { headers }) => {
 });
 
 export const client = new ApolloClient({
-  link: authLink.concat(httpLink),
+  link: from([errorLink, authLink, httpLink]),
   cache: new InMemoryCache({
     typePolicies: {
       Query: {

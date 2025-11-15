@@ -5,7 +5,7 @@ import UsernameSelection from './components/UsernameSelection'
 import Desktop from './components/Desktop'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import HomeBoard from './components/Desk';
-import { Auth0Provider } from '@auth0/auth0-react';
+import { Auth0Provider, useAuth0 } from '@auth0/auth0-react';
 import { auth0Config } from './auth/auth0-config';
 import ProtectedRoute from './components/ProtectedRoute';
 import KnowledgeBase from './components/KnowledgeBase';
@@ -13,13 +13,34 @@ import Settings from './components/Settings';
 import { BackgroundProvider } from './contexts/BackgroundContext';
 import BackgroundWrapper from './components/BackgroundWrapper';
 import { ApolloProvider } from '@apollo/client';
-import { client } from './services/graphql-api';
+import { client, setTokenGetter } from './services/graphql-api';
 import GraphQLTest from './components/GraphQLTest';
+import { useEffect } from 'react';
+
+// Component to set up token getter after Auth0 is initialized
+function TokenGetterSetup() {
+  const { getAccessTokenSilently, isAuthenticated } = useAuth0();
+
+  useEffect(() => {
+    setTokenGetter(async () => {
+      if (!isAuthenticated) return null;
+      try {
+        return await getAccessTokenSilently();
+      } catch (error) {
+        console.error('Error getting access token:', error);
+        return null;
+      }
+    });
+  }, [getAccessTokenSilently, isAuthenticated]);
+
+  return null;
+}
 
 function App() {
   return (
-    <ApolloProvider client={client}>
-      <Auth0Provider {...auth0Config}>
+    <Auth0Provider {...auth0Config}>
+      <TokenGetterSetup />
+      <ApolloProvider client={client}>
         <BackgroundProvider>
           <BrowserRouter>
             <Routes>
@@ -83,8 +104,8 @@ function App() {
             </Routes>
           </BrowserRouter>
         </BackgroundProvider>
-      </Auth0Provider>
-    </ApolloProvider>
+      </ApolloProvider>
+    </Auth0Provider>
   )
 }
 

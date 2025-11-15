@@ -1,25 +1,25 @@
 import { useAuth0 } from '@auth0/auth0-react';
 import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 const LogoutButton = () => {
-  const { logout } = useAuth0();
-  const navigate = useNavigate();
+  const { logout: auth0Logout } = useAuth0();
+  const { clearUser } = useAuth();
 
   const handleLogout = () => {
-    // Clear session storage
-    sessionStorage.removeItem('user');
-    sessionStorage.removeItem('token');
+    // Clear user from store
+    clearUser();
+    
+    // Clear any remaining session storage
+    sessionStorage.clear();
+    localStorage.removeItem('user-storage');
     
     // Logout from Auth0
-    logout({
+    auth0Logout({
       logoutParams: {
         returnTo: window.location.origin,
       },
     });
-    
-    // Navigate to login page
-    navigate('/');
   };
 
   return (

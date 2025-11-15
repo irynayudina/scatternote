@@ -15,6 +15,7 @@ import EmptyDesktopState from "./EmptyDesktopState"
 import type { FilterState } from "./FilterModal"
 import { apiService } from "@/services/api"
 import type { Note, Roadmap } from "@/services/api"
+import { useAuth } from "@/hooks/useAuth"
 import { 
   useUserStore, 
   useDesktopStore, 
@@ -130,40 +131,46 @@ const Desktop = () => {
     }
   }, [])
 
-  useEffect(() => {
-    // Check if user is logged in
-    const userData = sessionStorage.getItem('user')
-    const token = sessionStorage.getItem('token')
+  // Get auth state
+  const { isAuthenticated, user: authUser, isLoading: authLoading, syncUserProfile } = useAuth()
 
-    if (!userData || !token) {
-      navigate('/')
+  useEffect(() => {
+    if (authLoading) return;
+
+    if (!isAuthenticated) {
+      navigate('/', { replace: true })
       return
     }
 
-    try {
-      const parsedUser = JSON.parse(userData)
-      setUser(parsedUser)
-      
-      const desktopId = parseInt(id || '1')
-      setActiveDesktopId(desktopId)
-      
-      // Load data using stores
-      Promise.all([
-        fetchDesktops(parsedUser.id),
-        fetchDesktop(desktopId, parsedUser.id),
-        fetchNotes(parsedUser.id, desktopId),
-        fetchRoadmaps(parsedUser.id, desktopId),
-      ]).then(() => {
-        setCurrentDesktopId(desktopId)
-      }).catch((error) => {
-        console.error('Error loading data:', error)
-        navigate('/')
+    // Sync user if needed
+    if (!authUser) {
+      syncUserProfile().then((userExists) => {
+        if (!userExists) {
+          navigate('/username-selection', { replace: true })
+        }
       })
-    } catch (error) {
-      console.error('Error parsing user data:', error)
-      navigate('/')
+      return
     }
-  }, [navigate, id, setUser, fetchDesktops, fetchDesktop, fetchNotes, fetchRoadmaps, setActiveDesktopId, setCurrentDesktopId])
+
+    // User exists, set in store and load data
+    setUser(authUser)
+    
+    const desktopId = parseInt(id || '1')
+    setActiveDesktopId(desktopId)
+    
+    // Load data using stores
+    Promise.all([
+      fetchDesktops(authUser.id),
+      fetchDesktop(desktopId, authUser.id),
+      fetchNotes(authUser.id, desktopId),
+      fetchRoadmaps(authUser.id, desktopId),
+    ]).then(() => {
+      setCurrentDesktopId(desktopId)
+    }).catch((error) => {
+      console.error('Error loading data:', error)
+      navigate('/', { replace: true })
+    })
+  }, [navigate, id, authUser, isAuthenticated, authLoading, setUser, syncUserProfile, fetchDesktops, fetchDesktop, fetchNotes, fetchRoadmaps, setActiveDesktopId, setCurrentDesktopId])
 
 
 

@@ -1,12 +1,20 @@
-import { useAuth0 } from '@auth0/auth0-react';
+import { useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { isAuthenticated, isLoading } = useAuth0();
+  const { isAuthenticated, isLoading, user, syncUserProfile } = useAuth();
+
+  useEffect(() => {
+    // If authenticated but user not loaded, try to sync
+    if (isAuthenticated && !user && !isLoading) {
+      syncUserProfile();
+    }
+  }, [isAuthenticated, user, isLoading, syncUserProfile]);
 
   if (isLoading) {
     return (
@@ -23,6 +31,8 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <Navigate to="/" replace />;
   }
 
+  // For routes that require a complete user profile (not just Auth0 auth)
+  // We allow access but components will handle redirect if needed
   return <>{children}</>;
 };
 
