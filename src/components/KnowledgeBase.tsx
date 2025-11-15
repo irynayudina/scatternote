@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { Search, Monitor, Tag as TagIcon, LayoutGrid, List, ArrowUpDown, X, RotateCcw } from "lucide-react"
 import { useAuth0 } from '@auth0/auth0-react';
 import LogoutButton from './LogoutButton'
 import { apiService } from '../services/api'
@@ -208,99 +210,208 @@ const KnowledgeBase = () => {
 
       {/* Search and Filters */}
       <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="bg-white/80 backdrop-blur-sm rounded-lg border border-pink-200 p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Search */}
-            <div className="lg:col-span-2">
-              <div className="flex space-x-2">
+        <div className="bg-white/80 backdrop-blur-sm rounded-lg border border-pink-200 shadow-sm p-6 mb-6">
+          {/* Search Bar */}
+          <div className="mb-6">
+            <Label htmlFor="search" className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+              <Search className="h-4 w-4 text-pink-500" />
+              Search Notes
+            </Label>
+            <div className="flex space-x-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
+                  id="search"
                   placeholder="Search notes by title or content..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                  className="flex-1"
+                  className="pl-10 border-pink-300 focus:ring-pink-500 focus:border-pink-500"
                 />
-                <Button 
-                  onClick={handleSearch}
-                  className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white border-0"
-                >
-                  Search
-                </Button>
               </div>
-            </div>
-
-            {/* Desktop Filter */}
-            <div>
-              <select
-                value={selectedDesktop || ""}
-                onChange={(e) => setSelectedDesktop(e.target.value ? parseInt(e.target.value) : null)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
+              <Button 
+                onClick={handleSearch}
+                className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white border-0 shadow-sm"
               >
-                <option value="">All Desktops</option>
-                {desktops.map(desktop => (
-                  <option key={desktop.id} value={desktop.id}>
-                    {desktop.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Tag Filter */}
-            <div>
-              <select
-                value={selectedTag || ""}
-                onChange={(e) => setSelectedTag(e.target.value || null)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
-              >
-                <option value="">All Tags</option>
-                {tags.map(tag => (
-                  <option key={tag.id} value={tag.name}>
-                    {tag.name}
-                  </option>
-                ))}
-              </select>
+                Search
+              </Button>
             </div>
           </div>
 
-          {/* View Controls */}
-          <div className="flex justify-between items-center mt-4">
-            <div className="flex items-center space-x-4">
-              <Button
-                onClick={clearFilters}
-                className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400"
-                variant="outline"
-                size="sm"
-              >
-                Clear Filters
-              </Button>
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-600">Sort by:</span>
+          {/* Filters Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+            {/* Desktop Filter */}
+            <div className="space-y-2">
+              <Label htmlFor="desktop-filter" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                <Monitor className="h-4 w-4 text-pink-500" />
+                Desktop
+              </Label>
+              <div className="relative">
                 <select
+                  id="desktop-filter"
+                  value={selectedDesktop || ""}
+                  onChange={(e) => setSelectedDesktop(e.target.value ? parseInt(e.target.value) : null)}
+                  className="w-full px-3 py-2 pl-10 pr-8 border border-pink-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 appearance-none cursor-pointer transition-all hover:border-pink-400"
+                >
+                  <option value="">All Desktops</option>
+                  {desktops.map(desktop => (
+                    <option key={desktop.id} value={desktop.id}>
+                      {desktop.name}
+                    </option>
+                  ))}
+                </select>
+                <Monitor className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                  <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* Tag Filter */}
+            <div className="space-y-2">
+              <Label htmlFor="tag-filter" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                <TagIcon className="h-4 w-4 text-pink-500" />
+                Tag
+              </Label>
+              <div className="relative">
+                <select
+                  id="tag-filter"
+                  value={selectedTag || ""}
+                  onChange={(e) => setSelectedTag(e.target.value || null)}
+                  className="w-full px-3 py-2 pl-10 pr-8 border border-pink-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 appearance-none cursor-pointer transition-all hover:border-pink-400"
+                >
+                  <option value="">All Tags</option>
+                  {tags.map(tag => (
+                    <option key={tag.id} value={tag.name}>
+                      {tag.name}
+                    </option>
+                  ))}
+                </select>
+                <TagIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                  <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* Sort Filter */}
+            <div className="space-y-2">
+              <Label htmlFor="sort-filter" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                <ArrowUpDown className="h-4 w-4 text-pink-500" />
+                Sort By
+              </Label>
+              <div className="relative">
+                <select
+                  id="sort-filter"
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as 'date' | 'title' | 'desktop')}
-                  className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
+                  className="w-full px-3 py-2 pl-10 pr-8 border border-pink-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500 appearance-none cursor-pointer transition-all hover:border-pink-400"
                 >
                   <option value="date">Date</option>
                   <option value="title">Title</option>
                   <option value="desktop">Desktop</option>
                 </select>
+                <ArrowUpDown className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                  <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <Button
-                onClick={() => setViewMode('grid')}
-                className={`px-3 py-1 text-sm ${viewMode === 'grid' ? 'bg-pink-500 text-white' : 'border-pink-300 text-pink-600 hover:bg-pink-50'}`}
-                variant={viewMode === 'grid' ? 'default' : 'outline'}
-              >
-                Grid
-              </Button>
-              <Button
-                onClick={() => setViewMode('list')}
-                className={`px-3 py-1 text-sm ${viewMode === 'list' ? 'bg-pink-500 text-white' : 'border-pink-300 text-pink-600 hover:bg-pink-50'}`}
-                variant={viewMode === 'list' ? 'default' : 'outline'}
-              >
-                List
-              </Button>
+          </div>
+
+          {/* Active Filters & Controls */}
+          <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-pink-200">
+            <div className="flex flex-wrap items-center gap-2">
+              {(selectedDesktop || selectedTag || searchQuery) && (
+                <>
+                  <span className="text-sm text-gray-600 font-medium">Active filters:</span>
+                  {searchQuery && (
+                    <div className="flex items-center gap-1 bg-pink-100 text-pink-700 px-3 py-1 rounded-full text-sm">
+                      <span>Search: "{searchQuery}"</span>
+                      <button
+                        onClick={() => setSearchQuery("")}
+                        className="ml-1 hover:text-pink-900 transition-colors"
+                        aria-label="Remove search filter"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  )}
+                  {selectedDesktop && (
+                    <div className="flex items-center gap-1 bg-pink-100 text-pink-700 px-3 py-1 rounded-full text-sm">
+                      <Monitor className="h-3 w-3" />
+                      <span>{desktops.find(d => d.id === selectedDesktop)?.name}</span>
+                      <button
+                        onClick={() => setSelectedDesktop(null)}
+                        className="ml-1 hover:text-pink-900 transition-colors"
+                        aria-label="Remove desktop filter"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  )}
+                  {selectedTag && (
+                    <div className="flex items-center gap-1 bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm">
+                      <TagIcon className="h-3 w-3" />
+                      <span>{selectedTag}</span>
+                      <button
+                        onClick={() => setSelectedTag(null)}
+                        className="ml-1 hover:text-purple-900 transition-colors"
+                        aria-label="Remove tag filter"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  )}
+                  <Button
+                    onClick={clearFilters}
+                    variant="outline"
+                    size="sm"
+                    className="border-pink-300 text-pink-600 hover:bg-pink-50 hover:border-pink-400"
+                  >
+                    <RotateCcw className="h-3 w-3 mr-1" />
+                    Clear All
+                  </Button>
+                </>
+              )}
+            </div>
+            
+            {/* View Mode Toggle */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600 font-medium">View:</span>
+              <div className="flex items-center border border-pink-300 rounded-md overflow-hidden">
+                <Button
+                  onClick={() => setViewMode('grid')}
+                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                  size="sm"
+                  className={`px-3 py-1.5 rounded-none border-0 ${
+                    viewMode === 'grid' 
+                      ? 'bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white shadow-sm' 
+                      : 'text-gray-600 hover:bg-pink-50'
+                  }`}
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                </Button>
+                <div className="w-px bg-pink-300"></div>
+                <Button
+                  onClick={() => setViewMode('list')}
+                  variant={viewMode === 'list' ? 'default' : 'ghost'}
+                  size="sm"
+                  className={`px-3 py-1.5 rounded-none border-0 ${
+                    viewMode === 'list' 
+                      ? 'bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white shadow-sm' 
+                      : 'text-gray-600 hover:bg-pink-50'
+                  }`}
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
