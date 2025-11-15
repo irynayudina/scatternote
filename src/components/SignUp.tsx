@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 
 const SignUp = () => {
     const { loginWithRedirect, isLoading } = useAuth0();
-    const { isAuthenticated, user, handleAuthRedirect, error } = useAuth();
+    const { isAuthenticated, user, handleAuthRedirect, auth0Error: error } = useAuth();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -60,7 +60,7 @@ const SignUp = () => {
                 
                 {error && (
                     <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
-                        {error}
+                        {error?.message || 'An error occurred while signing up'}
                     </div>
                 )}
                 

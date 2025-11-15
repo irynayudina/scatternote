@@ -11,8 +11,8 @@ interface UsernameSelectionProps {
 }
 
 const UsernameSelection = ({ onComplete }: UsernameSelectionProps) => {
-  const { user: auth0User, isLoading: auth0Loading, logout } = useAuth0();
-  const { isAuthenticated, user, createUserWithUsername, isLoading, error: authError } = useAuth();
+  const { user: auth0User, isLoading: auth0Loading} = useAuth0();
+  const { isAuthenticated, user, createUserWithUsername, isLoading, auth0Error: authError } = useAuth();
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -107,7 +107,7 @@ const UsernameSelection = ({ onComplete }: UsernameSelectionProps) => {
         
         {(error || authError) && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
-            {error || authError}
+            {error || authError?.message || 'An error occurred while creating your account'}
           </div>
         )}
         
