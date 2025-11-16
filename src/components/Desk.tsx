@@ -17,7 +17,115 @@ import type { Utility } from '@/services/api'
 const HomeBoard = () => {
   const navigate = useNavigate()
   const { isAuthenticated, user, isLoading: authLoading, syncUserProfile } = useAuth()
+
+  // Utilities state
+  const [utilities, setUtilities] = useState<Utility[]>([])
+  const [utilitiesLoading, setUtilitiesLoading] = useState(false)
+  const [utilitiesError, setUtilitiesError] = useState<string | null>(null)
+
+  // Track any object URLs we create so we can revoke them on cleanup
+  const [createdObjectUrls, setCreatedObjectUrls] = useState<string[]>([])
+
+  // Helper: resolve possible URL/string/blob/typed-array into a browser-usable URL
+  const resolveImageSource = useCallback((value: unknown): string | null => {
+    if (!value) return null
+
+    // If it's already a string URL or data URL, keep as-is
+    if (typeof value === 'string') {
+      const str = value.trim()
+      if (
+        str.startsWith('http://') ||
+        str.startsWith('https://') ||
+        str.startsWith('/') ||
+        str.startsWith('data:')
+      ) {
+        return str
+      }
+      // Non-URL strings fallback to rendering as emoji/char later
+      return str
+    }
+
+    // If it's a Blob (or File), create an object URL
+    if (typeof Blob !== 'undefined' && value instanceof Blob) {
+      const url = URL.createObjectURL(value)
+      setCreatedObjectUrls(prev => [...prev, url])
+      return url
+    }
+
+    // If it's an ArrayBuffer
+    if (value instanceof ArrayBuffer) {
+      const blob = new Blob([value])
+      const url = URL.createObjectURL(blob)
+      setCreatedObjectUrls(prev => [...prev, url])
+      return url
+    }
+
+    // If it's a typed array (e.g., Uint8Array)
+    if (
+      typeof value === 'object' &&
+      value !== null &&
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (value as any).buffer instanceof ArrayBuffer
+    ) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const view = value as any
+      const blob = new Blob([view])
+      const url = URL.createObjectURL(blob)
+      setCreatedObjectUrls(prev => [...prev, url])
+      return url
+    }
+
+    // If it's an object like { data: <Uint8Array|ArrayBuffer|string>, contentType?: string }
+    if (typeof value === 'object' && value !== null) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const maybe = value as any
+      if (maybe.data) {
+        const contentType: string | undefined = typeof maybe.contentType === 'string' ? maybe.contentType : undefined
+        // If data is already a string URL or data URL
+        if (typeof maybe.data === 'string') {
+          const str = maybe.data.trim()
+          if (str.startsWith('http://') || str.startsWith('https://') || str.startsWith('/') || str.startsWith('data:')) {
+            return str
+          }
+          // If it's base64 without data: prefix, attempt to wrap it
+          try {
+            // crude base64 detection; if it fails, fall back to text rendering
+            const binary = atob(str)
+            const bytes = new Uint8Array(binary.length)
+            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+            const blob = new Blob([bytes], { type: contentType })
+            const url = URL.createObjectURL(blob)
+            setCreatedObjectUrls(prev => [...prev, url])
+            return url
+          } catch {
+            return str
+          }
+        }
+        // If data is ArrayBuffer-like or typed array
+        if (maybe.data instanceof ArrayBuffer || (maybe.data?.buffer instanceof ArrayBuffer)) {
+          const blob = maybe.data instanceof ArrayBuffer ? new Blob([maybe.data], { type: contentType }) : new Blob([maybe.data], { type: contentType })
+          const url = URL.createObjectURL(blob)
+          setCreatedObjectUrls(prev => [...prev, url])
+          return url
+        }
+      }
+    }
+
+    return null
+  }, [])
   
+  // Revoke any created object URLs when utilities list changes or on unmount
+  useEffect(() => {
+    return () => {
+      if (createdObjectUrls.length > 0) {
+        createdObjectUrls.forEach((u) => {
+          try { URL.revokeObjectURL(u) } catch {}
+        })
+      }
+      setCreatedObjectUrls([])
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [utilities])
   // Desktop store
   const desktops = useDesktopStore((state) => state.desktops)
   const desktopLoading = useDesktopStore((state) => state.isLoading)
@@ -31,11 +139,6 @@ const HomeBoard = () => {
   const setCreateModalOpen = useUIStore((state) => state.setCreateDesktopModalOpen)
   const setCreateNoteModalOpen = useUIStore((state) => state.setCreateNoteModalOpen)
   const setEditDesktopsModalOpen = useUIStore((state) => state.setEditDesktopsModalOpen)
-  
-  // Utilities state
-  const [utilities, setUtilities] = useState<Utility[]>([])
-  const [utilitiesLoading, setUtilitiesLoading] = useState(false)
-  const [utilitiesError, setUtilitiesError] = useState<string | null>(null)
   
   const isLoading = desktopLoading || authLoading
 
@@ -343,7 +446,8 @@ const HomeBoard = () => {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {utilities.map((utility, index) => {
-                    const imageUrl = utility.picture || utility.image || utility.icon
+                  const rawImage = (utility.picture as unknown) ?? (utility.image as unknown) ?? (utility.icon as unknown)
+                  const imageUrl = resolveImageSource(rawImage) ?? undefined
                     return (
                       <a
                         key={utility.id || index}
@@ -354,7 +458,7 @@ const HomeBoard = () => {
                       >
                         {imageUrl ? (
                           <div className="w-16 h-16 mb-3 flex items-center justify-center">
-                            {imageUrl.startsWith('http') || imageUrl.startsWith('/') ? (
+                            {(typeof imageUrl === 'string' && (imageUrl.startsWith('http') || imageUrl.startsWith('/') || imageUrl.startsWith('data:'))) ? (
                               <img 
                                 src={imageUrl} 
                                 alt={utility.name}
@@ -370,7 +474,7 @@ const HomeBoard = () => {
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-4xl">
-                                {imageUrl}
+                                {String(imageUrl)}
                               </div>
                             )}
                           </div>
