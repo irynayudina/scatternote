@@ -33,6 +33,7 @@ const HomeBoard = () => {
     // If it's already a string URL or data URL, keep as-is
     if (typeof value === 'string') {
       const str = value.trim()
+      if (str.length === 0) return null
       if (
         str.startsWith('http://') ||
         str.startsWith('https://') ||
@@ -445,8 +446,9 @@ const HomeBoard = () => {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {utilities.map((utility, index) => {
-                  const rawImage = (utility.picture as unknown) ?? (utility.image as unknown) ?? (utility.icon as unknown)
+                {utilities.map((utility, index) => {
+                  // Use logical OR so empty strings fall through to the next field
+                  const rawImage = (utility.picture as unknown) || (utility.image as unknown) || (utility.icon as unknown)
                   const imageUrl = resolveImageSource(rawImage) ?? undefined
                     return (
                       <a
