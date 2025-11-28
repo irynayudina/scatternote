@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Plus, X, GripVertical } from 'lucide-react'
-import { apiService } from '@/services/api'
+import { useRoadmapsStore } from '@/stores/roadmapsStore'
 
 interface CreateRoadmapModalProps {
   isOpen: boolean
@@ -30,6 +30,8 @@ const CreateRoadmapModal = ({ isOpen, onClose, desktopId, userId, onRoadmapCreat
   ])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  
+  const createRoadmap = useRoadmapsStore((state) => state.createRoadmap)
 
   const addStep = () => {
     setSteps([...steps, { title: '', description: '', order: steps.length + 1, isCompleted: false }])
@@ -79,7 +81,7 @@ const CreateRoadmapModal = ({ isOpen, onClose, desktopId, userId, onRoadmapCreat
     setError(null)
 
     try {
-      await apiService.createRoadmap(
+      const newRoadmap = await createRoadmap(
         {
           title: title.trim(),
           description: description.trim() || undefined,
@@ -94,13 +96,17 @@ const CreateRoadmapModal = ({ isOpen, onClose, desktopId, userId, onRoadmapCreat
         desktopId
       )
 
-      // Reset form
-      setTitle('')
-      setDescription('')
-      setSteps([{ title: '', description: '', order: 1, isCompleted: false }])
-      
-      onRoadmapCreated()
-      onClose()
+      if (newRoadmap) {
+        // Reset form
+        setTitle('')
+        setDescription('')
+        setSteps([{ title: '', description: '', order: 1, isCompleted: false }])
+        
+        onRoadmapCreated()
+        onClose()
+      } else {
+        setError('Failed to create roadmap. Please try again.')
+      }
     } catch (error) {
       console.error('Error creating roadmap:', error)
       setError('Failed to create roadmap. Please try again.')

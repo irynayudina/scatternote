@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { X, Plus, Tag, Pin, Edit, Eye } from "lucide-react"
-import { apiService } from "@/services/api"
+import { useNotesStore } from "@/stores/notesStore"
 import remarkGfm from "remark-gfm"
 import CodeBlock from "./CodeBlock"
 import InlineCode from "./InlineCode"
@@ -29,6 +29,8 @@ const CreateNoteModal = ({ isOpen, onClose, desktopId, userId, onNoteCreated }: 
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<'edit' | 'preview'>('edit')
+  
+  const createNote = useNotesStore((state) => state.createNote)
 
   // Reset form when modal opens
   useEffect(() => {
@@ -62,18 +64,22 @@ const CreateNoteModal = ({ isOpen, onClose, desktopId, userId, onNoteCreated }: 
         isPinned
       }
 
-      await apiService.createNote(noteData, userId)
+      const newNote = await createNote(noteData, userId)
 
-      // Reset form
-      setTitle("")
-      setContent("")
-      setTags([])
-      setNewTag("")
-      setIsPinned(false)
+      if (newNote) {
+        // Reset form
+        setTitle("")
+        setContent("")
+        setTags([])
+        setNewTag("")
+        setIsPinned(false)
 
-      // Close modal and refresh notes
-      onClose()
-      onNoteCreated()
+        // Close modal and notify parent
+        onClose()
+        onNoteCreated()
+      } else {
+        setError('Failed to create note. Please try again.')
+      }
     } catch (error) {
       console.error('Error creating note:', error)
       setError('Failed to create note. Please try again.')

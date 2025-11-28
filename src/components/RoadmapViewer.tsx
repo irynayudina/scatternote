@@ -4,8 +4,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Edit3, Save, X, Trash2, ArrowUp, ArrowDown } from 'lucide-react'
-import { apiService } from '@/services/api'
 import type { Roadmap, RoadmapStep } from '@/services/api'
+import { useRoadmapsStore } from '@/stores/roadmapsStore'
 import RoadmapStepComponent from './RoadmapStep'
 
 interface RoadmapViewerProps {
@@ -31,6 +31,9 @@ const RoadmapViewer = ({
   const [editedSteps, setEditedSteps] = useState<RoadmapStep[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  
+  const updateRoadmap = useRoadmapsStore((state) => state.updateRoadmap)
+  const deleteRoadmap = useRoadmapsStore((state) => state.deleteRoadmap)
 
   // Initialize edit state when roadmap changes
   useEffect(() => {
@@ -48,6 +51,7 @@ const RoadmapViewer = ({
   const progressPercentage = totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0
 
   const handleSaveEdit = async () => {
+    if (!roadmap) return
     if (!editedTitle.trim()) {
       setError('Title is required')
       return
@@ -62,7 +66,7 @@ const RoadmapViewer = ({
       setIsLoading(true)
       setError(null)
       
-      await apiService.updateRoadmap(roadmap.id, {
+      const updated = await updateRoadmap(roadmap.id, {
         title: editedTitle.trim(),
         description: editedDescription.trim() || undefined,
         steps: editedSteps.map(step => ({
@@ -73,8 +77,12 @@ const RoadmapViewer = ({
         }))
       }, userId)
 
-      setIsEditing(false)
-      onRoadmapUpdated()
+      if (updated) {
+        setIsEditing(false)
+        onRoadmapUpdated()
+      } else {
+        setError('Failed to update roadmap. Please try again.')
+      }
     } catch (error) {
       console.error('Error updating roadmap:', error)
       setError('Failed to update roadmap. Please try again.')
@@ -92,6 +100,7 @@ const RoadmapViewer = ({
   }
 
   const handleDeleteRoadmap = async () => {
+    if (!roadmap) return
     if (!confirm('Are you sure you want to delete this roadmap? This action cannot be undone.')) {
       return
     }
@@ -99,9 +108,13 @@ const RoadmapViewer = ({
     try {
       setIsLoading(true)
       setError(null)
-      await apiService.deleteRoadmap(roadmap.id, userId)
-      onRoadmapDeleted()
-      onClose()
+      const success = await deleteRoadmap(roadmap.id, userId)
+      if (success) {
+        onRoadmapDeleted()
+        onClose()
+      } else {
+        setError('Failed to delete roadmap. Please try again.')
+      }
     } catch (error) {
       console.error('Error deleting roadmap:', error)
       setError('Failed to delete roadmap. Please try again.')

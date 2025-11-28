@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { X, Edit, Tag, Pin, Trash2, Eye } from "lucide-react"
-import { apiService, type Note } from "@/services/api"
+import type { Note } from "@/services/api"
+import { useNotesStore } from "@/stores/notesStore"
 import remarkGfm from "remark-gfm"
 import CodeBlock from "./CodeBlock"
 import InlineCode from "./InlineCode"
@@ -31,6 +32,10 @@ const NoteViewer = ({ note, isOpen, onClose, onNoteUpdated, onNoteDeleted, userI
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<'edit' | 'preview'>('edit')
+  
+  const updateNote = useNotesStore((state) => state.updateNote)
+  const deleteNote = useNotesStore((state) => state.deleteNote)
+  const toggleNotePin = useNotesStore((state) => state.toggleNotePin)
 
   useEffect(() => {
     if (note) {
@@ -51,15 +56,20 @@ const NoteViewer = ({ note, isOpen, onClose, onNoteUpdated, onNoteDeleted, userI
     setError(null)
 
     try {
-      await apiService.updateNote(note.id, {
+      const updated = await updateNote(note.id, {
         title: title.trim(),
         content: content.trim(),
         tags: tags.filter(tag => tag.trim()),
         isPinned
       }, userId)
 
-      setIsEditing(false)
-      onNoteUpdated()
+      if (updated) {
+        setIsEditing(false)
+        setIsPinned(updated.isPinned || false)
+        onNoteUpdated()
+      } else {
+        setError('Failed to update note. Please try again.')
+      }
     } catch (error) {
       console.error('Error updating note:', error)
       setError('Failed to update note. Please try again.')
@@ -79,9 +89,13 @@ const NoteViewer = ({ note, isOpen, onClose, onNoteUpdated, onNoteDeleted, userI
     setError(null)
 
     try {
-      await apiService.deleteNote(note.id, userId)
-      onClose()
-      onNoteDeleted()
+      const success = await deleteNote(note.id, userId)
+      if (success) {
+        onClose()
+        onNoteDeleted()
+      } else {
+        setError('Failed to delete note. Please try again.')
+      }
     } catch (error) {
       console.error('Error deleting note:', error)
       setError('Failed to delete note. Please try again.')
@@ -97,9 +111,13 @@ const NoteViewer = ({ note, isOpen, onClose, onNoteUpdated, onNoteDeleted, userI
     setError(null)
 
     try {
-      await apiService.toggleNotePin(note.id, userId)
-      setIsPinned(!isPinned)
-      onNoteUpdated()
+      const updated = await toggleNotePin(note.id, userId)
+      if (updated) {
+        setIsPinned(updated.isPinned || false)
+        onNoteUpdated()
+      } else {
+        setError('Failed to toggle pin. Please try again.')
+      }
     } catch (error) {
       console.error('Error toggling pin:', error)
       setError('Failed to toggle pin. Please try again.')

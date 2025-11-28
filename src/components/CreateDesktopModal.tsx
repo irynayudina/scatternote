@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { X, Monitor } from "lucide-react"
-import { apiService } from "@/services/api"
+import { useDesktopStore } from "@/stores/desktopStore"
 
 interface CreateDesktopModalProps {
   isOpen: boolean
@@ -18,6 +18,8 @@ const CreateDesktopModal = ({ isOpen, onClose, userId, onDesktopCreated }: Creat
   const [description, setDescription] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  
+  const createDesktop = useDesktopStore((state) => state.createDesktop)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -35,15 +37,19 @@ const CreateDesktopModal = ({ isOpen, onClose, userId, onDesktopCreated }: Creat
         description: description.trim() || undefined
       }
 
-      await apiService.createDesktop(desktopData, userId)
+      const newDesktop = await createDesktop(desktopData, userId)
 
-      // Reset form
-      setName("")
-      setDescription("")
+      if (newDesktop) {
+        // Reset form
+        setName("")
+        setDescription("")
 
-      // Close modal and refresh desktops
-      onClose()
-      onDesktopCreated()
+        // Close modal and notify parent
+        onClose()
+        onDesktopCreated()
+      } else {
+        setError('Failed to create desktop. Please try again.')
+      }
     } catch (error) {
       console.error('Error creating desktop:', error)
       setError('Failed to create desktop. Please try again.')

@@ -115,18 +115,16 @@ const HomeBoard = () => {
     return null
   }, [])
   
-  // Revoke any created object URLs when utilities list changes or on unmount
+  // Revoke any created object URLs on unmount
   useEffect(() => {
     return () => {
-      if (createdObjectUrls.length > 0) {
-        createdObjectUrls.forEach((u) => {
-          try { URL.revokeObjectURL(u) } catch {}
-        })
-      }
-      setCreatedObjectUrls([])
+      // Clean up all created object URLs on unmount
+      createdObjectUrls.forEach((u) => {
+        try { URL.revokeObjectURL(u) } catch {}
+      })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [utilities])
+  }, [])
   // Desktop store
   const desktops = useDesktopStore((state) => state.desktops)
   const desktopLoading = useDesktopStore((state) => state.isLoading)

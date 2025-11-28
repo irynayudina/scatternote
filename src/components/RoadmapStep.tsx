@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { CheckCircle, Circle } from 'lucide-react'
-import { apiService } from '@/services/api'
+import { useRoadmapsStore } from '@/stores/roadmapsStore'
 import type { RoadmapStep } from '@/services/api'
 
 interface RoadmapStepProps {
@@ -20,6 +20,8 @@ const RoadmapStepComponent = ({
 }: RoadmapStepProps) => {
   const [isCompleted, setIsCompleted] = useState(step.isCompleted)
   const [isToggling, setIsToggling] = useState(false)
+  
+  const toggleStepCompletion = useRoadmapsStore((state) => state.toggleStepCompletion)
 
   // Update local state when step prop changes
   useEffect(() => {
@@ -32,8 +34,18 @@ const RoadmapStepComponent = ({
       // Optimistically update the UI
       setIsCompleted(!isCompleted)
       
-      await apiService.toggleStepCompletion(step.id, userId)
-      onStepUpdated()
+      const updatedRoadmap = await toggleStepCompletion(step.id, userId)
+      if (updatedRoadmap) {
+        // Find the updated step in the roadmap
+        const updatedStep = updatedRoadmap.steps.find(s => s.id === step.id)
+        if (updatedStep) {
+          setIsCompleted(updatedStep.isCompleted)
+        }
+        onStepUpdated()
+      } else {
+        // Revert the optimistic update on error
+        setIsCompleted(step.isCompleted)
+      }
     } catch (error) {
       console.error('Error toggling step:', error)
       // Revert the optimistic update on error
