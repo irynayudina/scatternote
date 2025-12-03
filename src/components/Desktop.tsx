@@ -97,6 +97,10 @@ const Desktop = () => {
   const [touchStartY, setTouchStartY] = useState(0)
   const [isSwiping, setIsSwiping] = useState(false)
   
+  // Preview desktop state - for visual scrolling without navigation
+  const [previewDesktopId, setPreviewDesktopId] = useState<number | null>(null)
+  const [isSidebarHovered, setIsSidebarHovered] = useState(false)
+  
   // Combined error state
   const error = desktopError || notesError || roadmapsError
   const isLoading = desktopLoading || notesLoading || roadmapsLoading
@@ -331,25 +335,27 @@ const Desktop = () => {
     }
   }
 
-  // Carousel logic
+  // Carousel logic - center on preview desktop if exists, otherwise active desktop
   const getRearrangedDesktops = useCallback(() => {
     if (desktops.length === 0) return []
     
-    const activeIndex = desktops.findIndex(d => d.id === activeDesktopId)
-    if (activeIndex === -1) return desktops
+    // Use preview desktop if it exists, otherwise use active desktop
+    const targetDesktopId = previewDesktopId ?? activeDesktopId
+    const targetIndex = desktops.findIndex(d => d.id === targetDesktopId)
+    if (targetIndex === -1) return desktops
     
     const middleIndex = Math.floor(desktops.length / 2)
-    const shift = middleIndex - activeIndex
+    const shift = middleIndex - targetIndex
     
     const rearranged = [...desktops]
     if (shift > 0) {
-      // Move active element forward
+      // Move target element forward
       for (let i = 0; i < shift; i++) {
         const last = rearranged.pop()!
         rearranged.unshift(last)
       }
     } else if (shift < 0) {
-      // Move active element backward
+      // Move target element backward
       for (let i = 0; i < Math.abs(shift); i++) {
         const first = rearranged.shift()!
         rearranged.push(first)
@@ -357,25 +363,29 @@ const Desktop = () => {
     }
     
     return rearranged
-  }, [desktops, activeDesktopId])
+  }, [desktops, activeDesktopId, previewDesktopId])
 
-  const goToNextDesktop = useCallback(() => {
-    const currentIndex = desktops.findIndex(d => d.id === activeDesktopId)
+  // Visual scrolling functions - update preview without navigation
+  const scrollToNextDesktop = useCallback(() => {
+    const currentTargetId = previewDesktopId ?? activeDesktopId
+    const currentIndex = desktops.findIndex(d => d.id === currentTargetId)
     const nextIndex = (currentIndex + 1) % desktops.length
     const nextDesktop = desktops[nextIndex]
     if (nextDesktop) {
-      handleDesktopChange(nextDesktop.id)
+      setPreviewDesktopId(nextDesktop.id)
     }
-  }, [desktops, activeDesktopId, handleDesktopChange])
+  }, [desktops, activeDesktopId, previewDesktopId])
 
-  const goToPreviousDesktop = useCallback(() => {
-    const currentIndex = desktops.findIndex(d => d.id === activeDesktopId)
+  const scrollToPreviousDesktop = useCallback(() => {
+    const currentTargetId = previewDesktopId ?? activeDesktopId
+    const currentIndex = desktops.findIndex(d => d.id === currentTargetId)
     const prevIndex = currentIndex === 0 ? desktops.length - 1 : currentIndex - 1
     const prevDesktop = desktops[prevIndex]
     if (prevDesktop) {
-      handleDesktopChange(prevDesktop.id)
+      setPreviewDesktopId(prevDesktop.id)
     }
-  }, [desktops, activeDesktopId, handleDesktopChange])
+  }, [desktops, activeDesktopId, previewDesktopId])
+  
 
   // Touch handlers - updated for vertical sidebar
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -409,11 +419,11 @@ const Desktop = () => {
 
     if (Math.abs(deltaY) > minSwipeDistance) {
       if (deltaY > 0) {
-        // Swiped up - go to next
-        goToNextDesktop()
+        // Swiped up - scroll to next (visual only)
+        scrollToNextDesktop()
       } else {
-        // Swiped down - go to previous
-        goToPreviousDesktop()
+        // Swiped down - scroll to previous (visual only)
+        scrollToPreviousDesktop()
       }
     }
 
@@ -423,7 +433,7 @@ const Desktop = () => {
     setIsSwiping(false)
   }
 
-  // Set up wheel event listener for sidebar - updated for vertical scrolling
+  // Set up wheel event listener for sidebar - visual scrolling only
   useEffect(() => {
     const sidebarElement = carouselRef.current
     if (!sidebarElement) return
@@ -435,9 +445,9 @@ const Desktop = () => {
       const threshold = 50
       if (Math.abs(e.deltaY) > threshold) {
         if (e.deltaY > 0) {
-          goToNextDesktop()
+          scrollToNextDesktop()
         } else {
-          goToPreviousDesktop()
+          scrollToPreviousDesktop()
         }
       }
     }
@@ -448,7 +458,13 @@ const Desktop = () => {
     return () => {
       sidebarElement.removeEventListener('wheel', wheelHandler)
     }
-  }, [goToNextDesktop, goToPreviousDesktop])
+  }, [scrollToNextDesktop, scrollToPreviousDesktop])
+  
+  // Clear preview when clicking on a desktop
+  const handleDesktopClick = useCallback((desktopId: number) => {
+    setPreviewDesktopId(null) // Clear preview
+    handleDesktopChange(desktopId) // Navigate to desktop
+  }, [handleDesktopChange])
 
   if (isLoading) {
     return (
@@ -529,12 +545,18 @@ const Desktop = () => {
       {/* Desktop Sidebar - Always visible when there are desktops */}
       {desktops.length > 0 && (
         <div 
-          className="relative bg-gradient-to-b from-white/95 via-white/90 to-white/85 backdrop-blur-md border-r border-pink-200/50 shadow-lg shadow-pink-100/30 flex-shrink-0 w-20 sm:w-24"
+          className={`relative bg-gradient-to-b from-white/95 via-white/90 to-white/85 backdrop-blur-md border-r border-pink-200/50 shadow-lg shadow-pink-100/30 flex-shrink-0 transition-all duration-300 ease-out ${
+            isSidebarHovered ? 'w-32 sm:w-40' : 'w-20 sm:w-24'
+          }`}
           onMouseEnter={() => {
             setMouseOverCarousel(true)
+            setIsSidebarHovered(true)
           }}
           onMouseLeave={() => {
             setMouseOverCarousel(false)
+            setIsSidebarHovered(false)
+            // Clear preview when leaving sidebar
+            setPreviewDesktopId(null)
           }}
         >
           {/* Gradient Border Accent */}
@@ -587,9 +609,10 @@ const Desktop = () => {
                       key={desktopItem.id}
                       desktop={desktopItem}
                       isActive={desktopItem.id === activeDesktopId}
+                      isPreview={desktopItem.id === previewDesktopId && previewDesktopId !== activeDesktopId}
                       isDragModeEnabled={isDragModeEnabled}
                       isDragOver={dragOverDesktop === desktopItem.id}
-                      onClick={() => handleDesktopChange(desktopItem.id)}
+                      onClick={() => handleDesktopClick(desktopItem.id)}
                       onDragOver={(e) => handleDragOver(e, desktopItem.id)}
                       onDragLeave={handleDragLeave}
                       onDrop={(e) => handleDrop(e, desktopItem.id)}

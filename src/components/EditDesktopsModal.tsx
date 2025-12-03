@@ -19,6 +19,8 @@ const EditDesktopsModal = ({ isOpen, onClose, desktops, onDesktopsUpdated }: Edi
   if (!isOpen) return null
 
   const handleEdit = (desktop: Desktop) => {
+    // does it really work?
+    console.log('handleEdit', desktop)
     setEditingDesktop(desktop.id)
     setEditName(desktop.name)
   }
