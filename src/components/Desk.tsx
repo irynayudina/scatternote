@@ -255,6 +255,7 @@ const HomeBoard = () => {
         onClose={() => setEditDesktopsModalOpen(false)}
         desktops={desktops}
         onDesktopsUpdated={handleDesktopsUpdated}
+        userId={user.id}
       />
 
       {/* Header */}

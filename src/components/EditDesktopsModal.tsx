@@ -9,9 +9,10 @@ interface EditDesktopsModalProps {
   onClose: () => void
   desktops: Desktop[]
   onDesktopsUpdated: () => void
+  userId: number
 }
 
-const EditDesktopsModal = ({ isOpen, onClose, desktops, onDesktopsUpdated }: EditDesktopsModalProps) => {
+const EditDesktopsModal = ({ isOpen, onClose, desktops, onDesktopsUpdated, userId }: EditDesktopsModalProps) => {
   const [editingDesktop, setEditingDesktop] = useState<number | null>(null)
   const [editName, setEditName] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -30,12 +31,7 @@ const EditDesktopsModal = ({ isOpen, onClose, desktops, onDesktopsUpdated }: Edi
 
     setIsLoading(true)
     try {
-      const userData = sessionStorage.getItem('user')
-      if (!userData) {
-        throw new Error('User not found')
-      }
-      const user = JSON.parse(userData)
-      await apiService.updateDesktop(desktopId, { name: editName.trim() }, user.id)
+      await apiService.updateDesktop(desktopId, { name: editName.trim() }, userId)
       setEditingDesktop(null)
       setEditName('')
       onDesktopsUpdated()
@@ -58,12 +54,7 @@ const EditDesktopsModal = ({ isOpen, onClose, desktops, onDesktopsUpdated }: Edi
 
     setIsLoading(true)
     try {
-      const userData = sessionStorage.getItem('user')
-      if (!userData) {
-        throw new Error('User not found')
-      }
-      const user = JSON.parse(userData)
-      await apiService.deleteDesktop(desktopId, user.id)
+      await apiService.deleteDesktop(desktopId, userId)
       onDesktopsUpdated()
     } catch (error) {
       console.error('Error deleting desktop:', error)
