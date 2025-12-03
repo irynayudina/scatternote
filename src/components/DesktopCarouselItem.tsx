@@ -140,7 +140,7 @@ const DesktopCarouselItem = ({
               : isPreview
               ? 'text-transparent bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text opacity-90'
               : isHovered
-              ? 'text-gray-700 group-hover:text-pink-600 whitespace-nowrap'
+              ? 'text-gray-700 group-hover:text-pink-600'
               : 'text-gray-600 group-hover:text-pink-600'
             }
             ${isHovered ? '' : 'max-w-[60px] sm:max-w-[80px] truncate'} block text-center
