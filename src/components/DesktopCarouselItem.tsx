@@ -119,7 +119,7 @@ const DesktopCarouselItem = ({
               ? 'text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text' 
               : 'text-gray-600 group-hover:text-pink-600'
             }
-            max-w-[40px] sm:max-w-[50px] truncate block
+            max-w-[60px] sm:max-w-[80px] truncate block text-center
           `}
           style={{
             userSelect: 'none',
@@ -136,19 +136,19 @@ const DesktopCarouselItem = ({
       {/* Hover Tooltip for Inactive Items */}
       {isHovered && !isActive && (
         <div
-          className="absolute bottom-full mb-1.5 px-2 py-1 rounded-md bg-gray-900/90 backdrop-blur-sm text-white text-[10px] font-medium shadow-lg z-50 whitespace-nowrap"
+          className="absolute left-full ml-1.5 px-2 py-1 rounded-md bg-gray-900/90 backdrop-blur-sm text-white text-[10px] font-medium shadow-lg z-50 whitespace-nowrap"
           style={{
             userSelect: 'none',
             WebkitUserSelect: 'none',
             MozUserSelect: 'none',
             msUserSelect: 'none',
             pointerEvents: 'none',
-            animation: 'fadeInUp 0.2s ease-out'
+            animation: 'fadeInLeft 0.2s ease-out'
           }}
         >
           {desktop.name}
           {/* Tooltip Arrow */}
-          <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-2 border-r-2 border-t-2 border-transparent border-t-gray-900/90" />
+          <div className="absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-full w-0 h-0 border-t-2 border-b-2 border-l-2 border-transparent border-l-gray-900/90" />
         </div>
       )}
     </div>

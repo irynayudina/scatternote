@@ -78,7 +78,6 @@ const Desktop = () => {
   const isDragging = useUIStore((state) => state.isDragging)
   const dragOverDesktop = useUIStore((state) => state.dragOverDesktop)
   const isDragModeEnabled = useUIStore((state) => state.isDragModeEnabled)
-  const isCarouselVisible = useUIStore((state) => state.isCarouselVisible)
   const setViewMode = useUIStore((state) => state.setViewMode)
   const setActiveDesktopId = useUIStore((state) => state.setActiveDesktopId)
   const setCreateNoteModalOpen = useUIStore((state) => state.setCreateNoteModalOpen)
@@ -91,7 +90,6 @@ const Desktop = () => {
   const setIsDragging = useUIStore((state) => state.setIsDragging)
   const setDragOverDesktop = useUIStore((state) => state.setDragOverDesktop)
   const setIsDragModeEnabled = useUIStore((state) => state.setIsDragModeEnabled)
-  const setCarouselVisible = useUIStore((state) => state.setCarouselVisible)
   const setMouseOverCarousel = useUIStore((state) => state.setMouseOverCarousel)
   
   // Local state for touch/swipe
@@ -103,33 +101,8 @@ const Desktop = () => {
   const error = desktopError || notesError || roadmapsError
   const isLoading = desktopLoading || notesLoading || roadmapsLoading
   
-  // Carousel ref
+  // Sidebar ref
   const carouselRef = useRef<HTMLDivElement>(null)
-  const hideCarouselTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-
-  // Debounced function to hide carousel
-  const debouncedHideCarousel = useCallback(() => {
-    // Clear any existing timeout
-    if (hideCarouselTimeoutRef.current) {
-      clearTimeout(hideCarouselTimeoutRef.current)
-    }
-    
-    // Set new timeout to hide carousel after 500ms
-    hideCarouselTimeoutRef.current = setTimeout(() => {
-      if (!useUIStore.getState().isMouseOverCarousel) {
-        setCarouselVisible(false)
-      }
-    }, 500)
-  }, [setCarouselVisible])
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (hideCarouselTimeoutRef.current) {
-        clearTimeout(hideCarouselTimeoutRef.current)
-      }
-    }
-  }, [])
 
   // Get auth state
   const { isAuthenticated, user: authUser, isLoading: authLoading, syncUserProfile } = useAuth()
@@ -404,7 +377,7 @@ const Desktop = () => {
     }
   }, [desktops, activeDesktopId, handleDesktopChange])
 
-  // Touch handlers
+  // Touch handlers - updated for vertical sidebar
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStartX(e.touches[0].clientX)
     setTouchStartY(e.touches[0].clientY)
@@ -420,26 +393,26 @@ const Desktop = () => {
     const deltaX = touchStartX - touchCurrentX
     const deltaY = touchStartY - touchCurrentY
     
-    // Determine if this is a horizontal swipe
-    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+    // Determine if this is a vertical swipe
+    if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 10) {
       setIsSwiping(true)
-      e.preventDefault() // Prevent default scrolling during horizontal swipe
+      e.preventDefault() // Prevent default scrolling during vertical swipe
     }
   }
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (!touchStartX || !touchStartY || !isSwiping) return
 
-    const touchEndX = e.changedTouches[0].clientX
-    const deltaX = touchStartX - touchEndX
+    const touchEndY = e.changedTouches[0].clientY
+    const deltaY = touchStartY - touchEndY
     const minSwipeDistance = 50 // Minimum distance for a swipe
 
-    if (Math.abs(deltaX) > minSwipeDistance) {
-      if (deltaX > 0) {
-        // Swiped left - go to next
+    if (Math.abs(deltaY) > minSwipeDistance) {
+      if (deltaY > 0) {
+        // Swiped up - go to next
         goToNextDesktop()
       } else {
-        // Swiped right - go to previous
+        // Swiped down - go to previous
         goToPreviousDesktop()
       }
     }
@@ -450,18 +423,18 @@ const Desktop = () => {
     setIsSwiping(false)
   }
 
-  // Set up wheel event listener for carousel
+  // Set up wheel event listener for sidebar - updated for vertical scrolling
   useEffect(() => {
-    const carouselElement = carouselRef.current
-    if (!carouselElement) return
+    const sidebarElement = carouselRef.current
+    if (!sidebarElement) return
 
     const wheelHandler = (e: WheelEvent) => {
       e.preventDefault()
       e.stopPropagation()
       
       const threshold = 50
-      if (Math.abs(e.deltaX) > threshold || Math.abs(e.deltaY) > threshold) {
-        if (e.deltaX > 0 || e.deltaY > 0) {
+      if (Math.abs(e.deltaY) > threshold) {
+        if (e.deltaY > 0) {
           goToNextDesktop()
         } else {
           goToPreviousDesktop()
@@ -470,10 +443,10 @@ const Desktop = () => {
     }
 
     // Use passive: false to ensure preventDefault works
-    carouselElement.addEventListener('wheel', wheelHandler, { passive: false })
+    sidebarElement.addEventListener('wheel', wheelHandler, { passive: false })
     
     return () => {
-      carouselElement.removeEventListener('wheel', wheelHandler)
+      sidebarElement.removeEventListener('wheel', wheelHandler)
     }
   }, [goToNextDesktop, goToPreviousDesktop])
 
@@ -492,7 +465,7 @@ const Desktop = () => {
 
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden">
+    <div className="h-screen flex overflow-hidden">
       {/* Create Note Modal */}
       <CreateNoteModal
         isOpen={isCreateNoteModalOpen}
@@ -553,136 +526,19 @@ const Desktop = () => {
         currentFilters={filters}
       />
 
-      {/* Header */}
-      <header 
-        className="bg-white/90 backdrop-blur-md border-b border-pink-200/50 sticky top-0 z-20 flex-shrink-0"
-        onMouseEnter={() => {
-          // Clear any pending hide timeout
-          if (hideCarouselTimeoutRef.current) {
-            clearTimeout(hideCarouselTimeoutRef.current)
-            hideCarouselTimeoutRef.current = null
-          }
-          setCarouselVisible(true)
-        }}
-        onMouseLeave={() => {
-          debouncedHideCarousel()
-        }}
-      >
-        <div className="max-w-10xl mx-auto px-3 sm:px-4 lg:px-6">
-          <div className="flex flex-col min-[450px]:flex-row sm:items-center sm:justify-between gap-3 py-3 sm:py-4">
-            {/* Desktop Info */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-gradient-to-r from-pink-400 to-purple-400 rounded-full flex-shrink-0"></div>
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text truncate">
-                  {desktop.name}
-                </h1>
-              </div>
-              {desktop.description && (
-                <p className="text-sm text-gray-600 mt-1 truncate max-w-xs sm:max-w-md lg:max-w-lg text-left">
-                  {desktop.description}
-                </p>
-              )}
-            </div>
-
-            {/* Carousel Toggle Button - Mobile Only */}
-            <div className="flex items-center justify-center flex-1 sm:hidden">
-              <button
-                onClick={() => setCarouselVisible(!isCarouselVisible)}
-                className="p-2 rounded-lg hover:bg-pink-50 transition-colors duration-200"
-                title="Toggle Desktop Carousel"
-              >
-                <svg width="30" height="9" viewBox="0 0 100 30" xmlns="http://www.w3.org/2000/svg" className="w-8 h-2.5">
-                  {/* Line through center */}
-                  <line x1="10" y1="15" x2="90" y2="15" stroke="currentColor" strokeWidth="2" className="text-gray-600" />
-                  
-                  {/* Left circle */}
-                  <circle cx="30" cy="15" r="6" fill="currentColor" className="text-gray-600" />
-
-                  {/* Middle (25% bigger) */}
-                  <circle cx="50" cy="15" r="7.5" fill="currentColor" className="text-gray-600" />
-
-                  {/* Right circle */}
-                  <circle cx="70" cy="15" r="6" fill="currentColor" className="text-gray-600" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Navigation Buttons */}
-            <div className="flex items-center justify-center sm:justify-end gap-2 sm:gap-3 flex-shrink-0">
-              <Button 
-                onClick={() => navigate('/knowledge-base')} 
-                variant="outline" 
-                size="sm"
-                className="border-pink-200 text-pink-600 hover:bg-pink-50 hover:border-pink-300 text-xs sm:text-sm px-2 sm:px-3"
-              >
-                <span className="hidden sm:inline">Knowledge Base</span>
-                <span className="sm:hidden">KB</span>
-              </Button>
-              <Button 
-                onClick={() => navigate('/settings')} 
-                variant="outline" 
-                size="sm"
-                className="border-pink-200 text-pink-600 hover:bg-pink-50 hover:border-pink-300 text-xs sm:text-sm px-2 sm:px-3"
-              >
-                <span className="hidden sm:inline">Settings</span>
-                <span className="sm:hidden">⚙️</span>
-              </Button>
-              <Button 
-                onClick={() => navigate('/home-board')} 
-                variant="outline" 
-                size="sm"
-                className="border-pink-200 text-pink-600 hover:bg-pink-50 hover:border-pink-300 text-xs sm:text-sm px-2 sm:px-3"
-              >
-                <span className="hidden sm:inline">Home Board</span>
-                <span className="sm:hidden">🏠</span>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Error/Success Message */}
-      {error && (
-        <div className={`px-3 sm:px-4 py-2 sm:py-3 rounded-md mx-3 sm:mx-4 mt-3 text-sm flex-shrink-0 ${
-          error.includes('✅') 
-            ? 'bg-green-50 border border-green-200 text-green-700' 
-            : 'bg-red-50 border border-red-200 text-red-700'
-        }`}>
-          {error}
-        </div>
-      )}
-
-      {/* Empty Desktop State */}
-      {!isLoading && desktops.length === 0 && (
-        <EmptyDesktopState
-          onCreateDesktop={handleCreateDesktop}
-          onGoToHomeBoard={() => navigate('/home-board')}
-        />
-      )}
-
-      {/* Desktop Carousel - Only show if there are desktops and carousel is visible */}
-      {desktops.length > 0 && isCarouselVisible && (
+      {/* Desktop Sidebar - Always visible when there are desktops */}
+      {desktops.length > 0 && (
         <div 
-          className="relative bg-gradient-to-b from-white/95 via-white/90 to-white/85 backdrop-blur-md border-b border-pink-200/50 shadow-lg shadow-pink-100/30 flex-shrink-0"
-          style={{
-            animation: 'slideDown 0.4s ease-out',
-          }}
+          className="relative bg-gradient-to-b from-white/95 via-white/90 to-white/85 backdrop-blur-md border-r border-pink-200/50 shadow-lg shadow-pink-100/30 flex-shrink-0 w-20 sm:w-24"
           onMouseEnter={() => {
             setMouseOverCarousel(true)
-            // Clear any pending hide timeout
-            if (hideCarouselTimeoutRef.current) {
-              clearTimeout(hideCarouselTimeoutRef.current)
-              hideCarouselTimeoutRef.current = null
-            }
           }}
           onMouseLeave={() => {
             setMouseOverCarousel(false)
-            setCarouselVisible(false)
           }}
         >
           {/* Gradient Border Accent */}
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-pink-400 to-transparent opacity-60" />
+          <div className="absolute top-0 bottom-0 left-0 w-[2px] bg-gradient-to-b from-transparent via-pink-400 to-transparent opacity-60" />
           
           {/* Decorative Background Pattern */}
           <div className="absolute inset-0 opacity-[0.02] pointer-events-none" 
@@ -692,18 +548,18 @@ const Desktop = () => {
             }}
           />
 
-          <div className="relative max-w-10xl mx-auto px-4 sm:px-8 lg:px-12">
-            {/* Left Fade Gradient */}
-            <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-24 bg-gradient-to-r from-white/90 to-transparent z-20 pointer-events-none" />
+          <div className="relative h-full flex flex-col">
+            {/* Top Fade Gradient */}
+            <div className="absolute top-0 left-0 right-0 h-16 sm:h-24 bg-gradient-to-b from-white/90 to-transparent z-20 pointer-events-none" />
 
-            {/* Right Fade Gradient */}
-            <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-24 bg-gradient-to-l from-white/90 to-transparent z-20 pointer-events-none" />
+            {/* Bottom Fade Gradient */}
+            <div className="absolute bottom-0 left-0 right-0 h-16 sm:h-24 bg-gradient-to-t from-white/90 to-transparent z-20 pointer-events-none" />
 
-            {/* Carousel Wrapper */}
-            <div className="relative mx-auto overflow-hidden py-4">
+            {/* Sidebar Content */}
+            <div className="relative flex-1 overflow-hidden py-4">
               <div 
                 ref={carouselRef}
-                className="relative overflow-visible"
+                className="relative overflow-visible h-full"
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
@@ -714,11 +570,11 @@ const Desktop = () => {
                   msUserSelect: 'none',
                   zIndex: 10,
                   overscrollBehavior: 'none',
-                  touchAction: 'pan-y pinch-zoom'
+                  touchAction: 'pan-x pinch-zoom'
                 }}
               >
                 <div 
-                  className="flex justify-center items-center gap-2 sm:gap-3 lg:gap-4 px-2 transition-all duration-700 ease-out pt-4"
+                  className="flex flex-col justify-center items-center gap-3 sm:gap-4 px-2 transition-all duration-700 ease-out"
                   style={{ 
                     userSelect: 'none',
                     WebkitUserSelect: 'none',
@@ -743,15 +599,91 @@ const Desktop = () => {
               </div>
             </div>
 
-            {/* Subtle Bottom Border */}
-            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-pink-200/50 to-transparent" />
+            {/* Subtle Right Border */}
+            <div className="absolute top-0 bottom-0 right-0 w-px bg-gradient-to-b from-transparent via-pink-200/50 to-transparent" />
           </div>
         </div>
       )}
 
-      {/* Main Content - Only show if there are desktops */}
-      {desktops.length > 0 && (
-        <main className="bg-white/60 flex-1 overflow-y-auto max-w-10xl mx-auto w-full py-4 sm:py-6">
+      {/* Main Content Area */}
+      <div className="flex flex-col flex-1 overflow-hidden">
+        {/* Header */}
+        <header 
+          className="bg-white/90 backdrop-blur-md border-b border-pink-200/50 sticky top-0 z-20 flex-shrink-0"
+        >
+          <div className="max-w-10xl mx-auto px-3 sm:px-4 lg:px-6">
+            <div className="flex flex-col min-[450px]:flex-row sm:items-center sm:justify-between gap-3 py-3 sm:py-4">
+              {/* Desktop Info */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-gradient-to-r from-pink-400 to-purple-400 rounded-full flex-shrink-0"></div>
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-transparent bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text truncate">
+                    {desktop.name}
+                  </h1>
+                </div>
+                {desktop.description && (
+                  <p className="text-sm text-gray-600 mt-1 truncate max-w-xs sm:max-w-md lg:max-w-lg text-left">
+                    {desktop.description}
+                  </p>
+                )}
+              </div>
+
+              {/* Navigation Buttons */}
+              <div className="flex items-center justify-center sm:justify-end gap-2 sm:gap-3 flex-shrink-0">
+                <Button 
+                  onClick={() => navigate('/knowledge-base')} 
+                  variant="outline" 
+                  size="sm"
+                  className="border-pink-200 text-pink-600 hover:bg-pink-50 hover:border-pink-300 text-xs sm:text-sm px-2 sm:px-3"
+                >
+                  <span className="hidden sm:inline">Knowledge Base</span>
+                  <span className="sm:hidden">KB</span>
+                </Button>
+                <Button 
+                  onClick={() => navigate('/settings')} 
+                  variant="outline" 
+                  size="sm"
+                  className="border-pink-200 text-pink-600 hover:bg-pink-50 hover:border-pink-300 text-xs sm:text-sm px-2 sm:px-3"
+                >
+                  <span className="hidden sm:inline">Settings</span>
+                  <span className="sm:hidden">⚙️</span>
+                </Button>
+                <Button 
+                  onClick={() => navigate('/home-board')} 
+                  variant="outline" 
+                  size="sm"
+                  className="border-pink-200 text-pink-600 hover:bg-pink-50 hover:border-pink-300 text-xs sm:text-sm px-2 sm:px-3"
+                >
+                  <span className="hidden sm:inline">Home Board</span>
+                  <span className="sm:hidden">🏠</span>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+      {/* Error/Success Message */}
+      {error && (
+        <div className={`px-3 sm:px-4 py-2 sm:py-3 rounded-md mx-3 sm:mx-4 mt-3 text-sm flex-shrink-0 ${
+          error.includes('✅') 
+            ? 'bg-green-50 border border-green-200 text-green-700' 
+            : 'bg-red-50 border border-red-200 text-red-700'
+        }`}>
+          {error}
+        </div>
+      )}
+
+      {/* Empty Desktop State */}
+      {!isLoading && desktops.length === 0 && (
+        <EmptyDesktopState
+          onCreateDesktop={handleCreateDesktop}
+          onGoToHomeBoard={() => navigate('/home-board')}
+        />
+      )}
+
+        {/* Main Content - Only show if there are desktops */}
+        {desktops.length > 0 && (
+          <main className="bg-white/60 flex-1 overflow-y-auto max-w-10xl mx-auto w-full py-4 sm:py-6">
           <div className="px-3 sm:px-4 lg:px-6">
             {/* Toolbar */}
             <DesktopToolbar
@@ -798,7 +730,8 @@ const Desktop = () => {
             />
           </div>
         </main>
-      )}
+        )}
+      </div>
     </div>
   )
 }
