@@ -3,12 +3,12 @@ import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth0 } from '@auth0/auth0-react';
-import LogoutButton from './LogoutButton'
-import MarkdownTestComponent from './MarkdownTestComponent'
-import { apiService } from '../services/api'
-import type { User, UserSettings } from '../services/api'
-import { BACKGROUND_IMAGES, getBackgroundImageById } from '../config/backgroundImages'
-import { useBackground } from '../contexts/BackgroundContext'
+import LogoutButton from '@/components/LogoutButton'
+import MarkdownTestComponent from '@/components/MarkdownTestComponent'
+import { apiService } from '@/services/api'
+import type { User, UserSettings } from '@/services/api'
+import { BACKGROUND_IMAGES, getBackgroundImageById } from '@/config/backgroundImages'
+import { useBackground } from '@/contexts/BackgroundContext'
 
 const Settings = () => {
   const navigate = useNavigate()

@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ReactNode } from 'react';
-import { useBackground } from '../contexts/BackgroundContext';
+import { useBackground } from '@/contexts/BackgroundContext';
 
 interface BackgroundWrapperProps {
   children: ReactNode;

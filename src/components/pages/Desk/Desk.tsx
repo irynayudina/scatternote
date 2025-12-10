@@ -1,10 +1,10 @@
 import { useEffect, useState, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
-import CreateDesktopModal from './CreateDesktopModal'
-import CreateNoteModalWithDesktop from './CreateNoteModalWithDesktop'
-import EditDesktopsModal from './EditDesktopsModal'
-import LogoutButton from './LogoutButton'
+import CreateDesktopModal from '@/components/pages/Desk/CreateDesktopModal'
+import CreateNoteModalWithDesktop from '@/components/CreateNoteModalWithDesktop'
+import EditDesktopsModal from '@/components/EditDesktopsModal'
+import LogoutButton from '@/components/LogoutButton'
 import { useAuth } from '@/hooks/useAuth'
 import { 
   useUserStore,

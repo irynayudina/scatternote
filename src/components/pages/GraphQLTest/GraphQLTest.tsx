@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { apiService } from '../services/api';
-import { Button } from './ui/button';
+import { apiService } from '@/services/api';
+import { Button } from '@/components/ui/button';
 
 const GraphQLTest = () => {
   const [testResult, setTestResult] = useState<string>('');

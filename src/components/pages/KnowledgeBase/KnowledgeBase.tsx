@@ -6,9 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Search, Monitor, Tag as TagIcon, LayoutGrid, List, ArrowUpDown, X, RotateCcw } from "lucide-react"
 import { useAuth0 } from '@auth0/auth0-react';
-import LogoutButton from './LogoutButton'
-import { apiService } from '../services/api'
-import type { User, Note, Desktop } from '../services/api'
+import LogoutButton from '@/components/LogoutButton'
+import { apiService } from '@/services/api'
+import type { User, Note, Desktop } from '@/services/api'
 
 interface Tag {
   id: number;

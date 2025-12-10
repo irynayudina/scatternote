@@ -1,20 +1,20 @@
 import './App.css'
-import LogIn from './components/LogIn'
-import SignUp from './components/SignUp'
-import UsernameSelection from './components/UsernameSelection'
-import Desktop from './components/Desktop'
+import LogIn from '@/components/pages/LogIn/LogIn'
+import SignUp from '@/components/pages/SignUp/SignUp'
+import UsernameSelection from '@/components/pages/UsernameSelection/UsernameSelection'
+import Desktop from '@/components/pages/Desktop/Desktop'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import HomeBoard from './components/Desk';
+import HomeBoard from '@/components/pages/Desk/Desk';
 import { Auth0Provider, useAuth0 } from '@auth0/auth0-react';
-import { auth0Config } from './auth/auth0-config';
-import ProtectedRoute from './components/ProtectedRoute';
-import KnowledgeBase from './components/KnowledgeBase';
-import Settings from './components/Settings';
+import { auth0Config } from '@/auth/auth0-config';
+import ProtectedRoute from '@/components/pages/ProtectedRoute';
+import KnowledgeBase from '@/components/pages/KnowledgeBase/KnowledgeBase';
+import Settings from '@/components/pages/Settings/Settings';
 import { BackgroundProvider } from './contexts/BackgroundContext';
-import BackgroundWrapper from './components/BackgroundWrapper';
+import BackgroundWrapper from '@/components/pages/BackgroundWrapper';
 import { ApolloProvider } from '@apollo/client';
-import { client, setTokenGetter } from './services/graphql-api';
-import GraphQLTest from './components/GraphQLTest';
+import { client, setTokenGetter } from '@/services/graphql-api';
+import GraphQLTest from '@/components/pages/GraphQLTest/GraphQLTest';
 import { useEffect } from 'react';
 
 // Component to set up token getter after Auth0 is initialized
@@ -44,7 +44,7 @@ function App() {
         <BackgroundProvider>
           <BrowserRouter>
             <Routes>
-                          <Route path="/" element={<LogIn />} />
+            <Route path="/" element={<LogIn />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/test-graphql" element={<GraphQLTest />} />
               <Route 
