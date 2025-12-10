@@ -367,22 +367,54 @@ const Desktop = () => {
 
   // Visual scrolling functions - update preview without navigation
   const scrollToNextDesktop = useCallback(() => {
+    console.log('[DIAG] scrollToNextDesktop callback invoked', {
+      previewDesktopId,
+      activeDesktopId,
+      desktopsCount: desktops.length,
+      timestamp: Date.now()
+    })
     const currentTargetId = previewDesktopId ?? activeDesktopId
     const currentIndex = desktops.findIndex(d => d.id === currentTargetId)
     const nextIndex = (currentIndex + 1) % desktops.length
     const nextDesktop = desktops[nextIndex]
+    console.log('[DIAG] scrollToNextDesktop calculation', {
+      currentTargetId,
+      currentIndex,
+      nextIndex,
+      nextDesktopId: nextDesktop?.id,
+      timestamp: Date.now()
+    })
     if (nextDesktop) {
       setPreviewDesktopId(nextDesktop.id)
+      console.log('[DIAG] scrollToNextDesktop - preview set to', nextDesktop.id)
+    } else {
+      console.warn('[DIAG] scrollToNextDesktop - no next desktop found')
     }
   }, [desktops, activeDesktopId, previewDesktopId])
 
   const scrollToPreviousDesktop = useCallback(() => {
+    console.log('[DIAG] scrollToPreviousDesktop callback invoked', {
+      previewDesktopId,
+      activeDesktopId,
+      desktopsCount: desktops.length,
+      timestamp: Date.now()
+    })
     const currentTargetId = previewDesktopId ?? activeDesktopId
     const currentIndex = desktops.findIndex(d => d.id === currentTargetId)
     const prevIndex = currentIndex === 0 ? desktops.length - 1 : currentIndex - 1
     const prevDesktop = desktops[prevIndex]
+    console.log('[DIAG] scrollToPreviousDesktop calculation', {
+      currentTargetId,
+      currentIndex,
+      prevIndex,
+      prevDesktopId: prevDesktop?.id,
+      timestamp: Date.now()
+    })
     if (prevDesktop) {
       setPreviewDesktopId(prevDesktop.id)
+      console.log('[DIAG] scrollToPreviousDesktop - preview set to', prevDesktop.id)
+    } else {
+      console.warn('[DIAG] scrollToPreviousDesktop - no prev desktop found')
     }
   }, [desktops, activeDesktopId, previewDesktopId])
   
@@ -433,32 +465,55 @@ const Desktop = () => {
     setIsSwiping(false)
   }
 
-  // Set up wheel event listener for sidebar - visual scrolling only
-  useEffect(() => {
-    const sidebarElement = carouselRef.current
-    if (!sidebarElement) return
-
-    const wheelHandler = (e: WheelEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
-      
-      const threshold = 50
-      if (Math.abs(e.deltaY) > threshold) {
-        if (e.deltaY > 0) {
+  // Handle wheel events using React's onWheel handler
+  const handleWheel = useCallback((e: React.WheelEvent<HTMLDivElement>) => {
+    console.log('[DIAG] handleWheel called', {
+      deltaY: e.deltaY,
+      isSidebarHovered,
+      timestamp: Date.now()
+    })
+    
+    // Only handle wheel events when sidebar is hovered
+    if (!isSidebarHovered) {
+      console.log('[DIAG] Wheel event ignored - sidebar not hovered')
+      return
+    }
+    
+    console.log('[DIAG] Processing wheel event - sidebar is hovered')
+    e.preventDefault()
+    e.stopPropagation()
+    
+    const threshold = 50
+    const absDeltaY = Math.abs(e.deltaY)
+    console.log('[DIAG] Wheel event details', {
+      absDeltaY,
+      threshold,
+      exceedsThreshold: absDeltaY > threshold,
+      direction: e.deltaY > 0 ? 'down' : 'up'
+    })
+    
+    if (absDeltaY > threshold) {
+      if (e.deltaY > 0) {
+        console.log('[DIAG] Calling scrollToNextDesktop')
+        try {
           scrollToNextDesktop()
-        } else {
+          console.log('[DIAG] scrollToNextDesktop called successfully')
+        } catch (error) {
+          console.error('[DIAG] Error calling scrollToNextDesktop', error)
+        }
+      } else {
+        console.log('[DIAG] Calling scrollToPreviousDesktop')
+        try {
           scrollToPreviousDesktop()
+          console.log('[DIAG] scrollToPreviousDesktop called successfully')
+        } catch (error) {
+          console.error('[DIAG] Error calling scrollToPreviousDesktop', error)
         }
       }
+    } else {
+      console.log('[DIAG] Wheel event ignored - deltaY below threshold')
     }
-
-    // Use passive: false to ensure preventDefault works
-    sidebarElement.addEventListener('wheel', wheelHandler, { passive: false })
-    
-    return () => {
-      sidebarElement.removeEventListener('wheel', wheelHandler)
-    }
-  }, [scrollToNextDesktop, scrollToPreviousDesktop])
+  }, [isSidebarHovered, scrollToNextDesktop, scrollToPreviousDesktop])
   
   // Clear preview when clicking on a desktop
   const handleDesktopClick = useCallback((desktopId: number) => {
@@ -549,10 +604,17 @@ const Desktop = () => {
             isSidebarHovered ? 'w-32 sm:w-40' : 'w-20 sm:w-24'
           }`}
           onMouseEnter={() => {
+            console.log('[DIAG] Sidebar mouse enter', {
+              timestamp: Date.now(),
+              carouselRefExists: !!carouselRef.current
+            })
             setMouseOverCarousel(true)
             setIsSidebarHovered(true)
           }}
           onMouseLeave={() => {
+            console.log('[DIAG] Sidebar mouse leave', {
+              timestamp: Date.now()
+            })
             setMouseOverCarousel(false)
             setIsSidebarHovered(false)
             // Clear preview when leaving sidebar
@@ -585,6 +647,7 @@ const Desktop = () => {
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
+                onWheel={handleWheel}
                 style={{ 
                   userSelect: 'none',
                   WebkitUserSelect: 'none',
