@@ -41,7 +41,8 @@ const RoadmapStepComponent = ({
         if (updatedStep) {
           setIsCompleted(updatedStep.isCompleted)
         }
-        onStepUpdated()
+        // Don't call onStepUpdated for toggle - store already updates state
+        // and RoadmapViewer reads from store, so it will auto-update
       } else {
         // Revert the optimistic update on error
         setIsCompleted(step.isCompleted)

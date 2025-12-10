@@ -238,7 +238,7 @@ export const useRoadmapsStore = create<RoadmapsState>((set, get) => ({
   },
 
   toggleStepCompletion: async (stepId, userId) => {
-    set({ isLoading: true, error: null });
+    set({ error: null });
     try {
       const updatedRoadmap = await apiService.toggleStepCompletion(stepId, userId);
       const state = get();
@@ -249,7 +249,6 @@ export const useRoadmapsStore = create<RoadmapsState>((set, get) => ({
       set({ 
         roadmaps: updatedRoadmaps,
         currentRoadmap: state.currentRoadmap?.id === updatedRoadmap.id ? updatedRoadmap : state.currentRoadmap,
-        isLoading: false 
       });
       
       // Invalidate Apollo cache
@@ -260,7 +259,7 @@ export const useRoadmapsStore = create<RoadmapsState>((set, get) => ({
       return updatedRoadmap;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to toggle step completion';
-      set({ error: errorMessage, isLoading: false });
+      set({ error: errorMessage });
       return null;
     }
   },

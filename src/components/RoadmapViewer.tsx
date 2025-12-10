@@ -18,7 +18,7 @@ interface RoadmapViewerProps {
 }
 
 const RoadmapViewer = ({ 
-  roadmap, 
+  roadmap: roadmapProp, 
   isOpen, 
   onClose, 
   onRoadmapUpdated, 
@@ -31,6 +31,10 @@ const RoadmapViewer = ({
   const [editedSteps, setEditedSteps] = useState<RoadmapStep[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  
+  // Get the current roadmap from store to ensure it's always up-to-date
+  const currentRoadmapFromStore = useRoadmapsStore((state) => state.currentRoadmap)
+  const roadmap = currentRoadmapFromStore || roadmapProp
   
   const updateRoadmap = useRoadmapsStore((state) => state.updateRoadmap)
   const deleteRoadmap = useRoadmapsStore((state) => state.deleteRoadmap)
